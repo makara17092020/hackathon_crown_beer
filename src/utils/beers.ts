@@ -23,7 +23,6 @@ export const BEERS: Beer[] = [
     brewery: "Riel Brewing and Distilling",
   },
   { id: "6", name: "Beer 6", style: "American IPA", brewery: "Fuzzy Logic" },
-  { id: "7", name: "Beer 7", style: "Blonde Ale", brewery: "Chug Lab" },
   {
     id: "8",
     name: "Beer 8",
@@ -32,15 +31,27 @@ export const BEERS: Beer[] = [
   },
   { id: "9", name: "Beer 9", style: "Brut IPA", brewery: "Funghi Art" },
   {
-    id: "10",
-    name: "Beer 10",
-    style: "American Stout",
-    brewery: "Jaya-Vara Meadery",
-  },
-  {
     id: "11",
     name: "Beer 11",
     style: "Specialty IPA",
     brewery: "Krama Craft Brewery",
+  },
+  {
+    id: "12",
+    name: "Himawari Ale",
+    style: "IPA",
+    brewery: "Himawari Microbrewery",
+  },
+  {
+    id: "13",
+    name: "Mozzie's Pale Ale",
+    style: "American Pale Ale",
+    brewery: "Mozzie's Brewing Co.",
+  },
+  {
+    id: "14",
+    name: "Bash Classic",
+    style: "Craft Lager",
+    brewery: "Bash Brewing",
   },
 ];

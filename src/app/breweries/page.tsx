@@ -47,13 +47,6 @@ const breweries = [
     mapUrl: "https://goo.gl/maps/8hEibY9S4oFX1gHb9", // Keep example link or update if you have a real one
   },
   {
-    name: "Chug Lab",
-    description:
-      "Nano brewery in Phnom Penh, heavy metal-themed tap house in BKK3.",
-    image: "/images/chuglab.png",
-    mapUrl: "https://maps.app.goo.gl/Qi3sqcxEiUuq8RRU6?g_st=com.google.maps.preview.copy",
-  },
-  {
     name: "Brew Khnear",
     description:
       "Focused on work/life balance with solid and creative beers using traditional methods.",
@@ -68,18 +61,32 @@ const breweries = [
     mapUrl: "https://maps.app.goo.gl/zJoutcHWooq9VyHt7?g_st=com.google.maps.preview.copy",
   },
   {
-    name: "Jaya-Vara Meadery",
-    description:
-      "Crafting unique meads & beers with local ingredients for the past 3 years.",
-    image: "/images/jayavara.png",
-    mapUrl: "https://goo.gl/maps/8mNYhC6RYQ7qA2wC7", // Example link, update if you want
-  },
-  {
     name: "Krama Craft Brewery",
     description:
       "Siem Reap brewery blending Cambodian ingredients with creative brewing.",
     image: "/images/kramacraft.png",
     mapUrl: "https://maps.app.goo.gl/i7d3uRnC9BjYizsp9?g_st=com.google.maps.preview.copy",
+  },
+  {
+    name: "Himawari Microbrewery",
+    description:
+      "Himawari Microbrewery is the 1st and only microbrewery launched by it's 5-star hotel-apartments in Cambodia.",
+    image: "/images/Himawari.png",
+    mapUrl: "https://maps.app.goo.gl/e4RNg6DvsJURvnYV7",
+  },
+  {
+    name: "Mozzie's Brewing Co.",
+    description:
+      "Originally from the USA and now brewing in Phnom Penh, Mozzie's is all about high-quality beer and community.",
+    image: "/images/MBC.png",
+    mapUrl: "https://goo.gl/maps/mozzies",
+  },
+  {
+    name: "Bash Brewing",
+    description:
+      "Established in 2016, Bash Brewing is one of the Kingdom's first independent international craft breweries.",
+    image: "/images/Bash.png",
+    mapUrl: "https://maps.app.goo.gl/pW7ieKD16Zkpzpon6",
   },
 ];
 
@@ -88,7 +95,7 @@ export default function BreweriesPage() {
     <main className="min-h-screen bg-gradient-to-b from-green-50 to-white px-4 sm:px-6 py-10">
       <section className="max-w-7xl mx-auto">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-green-800 text-center mb-10">
-          Breweries at the Cambodian Craft Beer Crown 2025
+          Breweries at the Great Cambodian Craft Beer Festival 2026
         </h1>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
