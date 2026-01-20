@@ -29,18 +29,26 @@ export default function HomePage() {
                 <span className="text-green-600">Festival 2026</span>
               </h1>
               <p className="text-lg md:text-xl text-[#4b463e] drop-shadow">
-                Join us for Cambodia&apos;s premier craft beer festival featuring{" "}
-                <span className="font-semibold text-green-700">14 exceptional breweries</span> and live entertainment.
+                Join us for Cambodia&apos;s premier craft beer festival
+                featuring{" "}
+                <span className="font-semibold text-green-700">
+                  14 exceptional breweries
+                </span>{" "}
+                and live entertainment.
               </p>
 
               {/* Event Details */}
               <div className="bg-green-100 rounded-xl shadow-lg p-6 flex flex-col gap-4 max-w-md transition-transform hover:scale-[1.02] hover:shadow-xl duration-300">
                 <div className="flex items-center gap-3 text-[#2d241b]">
-                  <span className="text-green-600 text-2xl animate-bounce">📅</span>
+                  <span className="text-green-600 text-2xl animate-bounce">
+                    🗓️
+                  </span>
                   <span className="font-semibold">January 31, 2026</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#2d241b]">
-                  <span className="text-green-600 text-2xl animate-pulse">⏰</span>
+                  <span className="text-green-600 text-2xl animate-pulse">
+                    ⏰
+                  </span>
                   <span>2:00 PM – 12:00 AM</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#2d241b]">
@@ -89,9 +97,14 @@ export default function HomePage() {
               className="bg-white/90 p-6 rounded-xl shadow-lg hover:shadow-2xl transition-transform hover:scale-105 duration-300 backdrop-blur-sm animate-slideUp"
               style={{ animationDelay: `${(i + 1) * 150}ms` }}
             >
-              <h3 className="text-xl font-bold text-green-700 mb-2">{item.title}</h3>
+              <h3 className="text-xl font-bold text-green-700 mb-2">
+                {item.title}
+              </h3>
               <p className="mb-3 text-[#4b463e]">{item.text}</p>
-              <Link href={item.link} className="text-green-700 font-semibold hover:underline">
+              <Link
+                href={item.link}
+                className="text-green-700 font-semibold hover:underline"
+              >
                 Learn More →
               </Link>
             </div>

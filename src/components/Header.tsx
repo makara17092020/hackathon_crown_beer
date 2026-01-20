@@ -15,6 +15,7 @@ import {
   Calendar,
   Award,
   Vote,
+  User,
 } from "lucide-react";
 
 import Logo1 from "@/images/logo.png";
@@ -32,6 +33,7 @@ export default function Header() {
     { name: "Schedule", href: "/schedule", icon: Calendar },
     { name: "Awards", href: "/awards", icon: Award },
     { name: "Sponsor", href: "/sponsors", icon: Globe },
+    { name: "Admin", href: "/admin/login", icon: User },
   ];
 
   const voteFormUrl = "https://forms.gle/LPZFNjGQymjVju8B8";
@@ -52,10 +54,22 @@ export default function Header() {
         {/* Desktop logos on left */}
         <div className="hidden md:flex items-center space-x-4">
           <Link href="/" className="flex items-center">
-            <Image src={Logo1} alt="Logo 1" width={40} height={40} className="w-auto h-15" />
+            <Image
+              src={Logo1}
+              alt="Logo 1"
+              width={40}
+              height={40}
+              className="w-auto h-15"
+            />
           </Link>
           <Link href="/" className="flex items-center">
-            <Image src={Logo2} alt="Logo 2" width={40} height={40} className="w-auto h-15" />
+            <Image
+              src={Logo2}
+              alt="Logo 2"
+              width={40}
+              height={40}
+              className="w-auto h-15"
+            />
           </Link>
         </div>
 
@@ -79,7 +93,9 @@ export default function Header() {
                 />
                 <span
                   className={`${
-                    isActive ? "text-green-700 font-semibold" : "group-hover:text-[#40916C]"
+                    isActive
+                      ? "text-green-700 font-semibold"
+                      : "group-hover:text-[#40916C]"
                   } transition duration-200
                   after:content-[''] after:absolute after:w-0 after:h-[2px]
                   after:bg-[#FFD166] after:left-0 after:bottom-[-4px]
@@ -107,10 +123,22 @@ export default function Header() {
         {/* Mobile logos on right */}
         <div className="flex md:hidden items-center space-x-3">
           <Link href="/" className="flex items-center">
-            <Image src={Logo1} alt="Logo 1" width={40} height={40} className="w-auto h-15" />
+            <Image
+              src={Logo1}
+              alt="Logo 1"
+              width={40}
+              height={40}
+              className="w-auto h-15"
+            />
           </Link>
           <Link href="/" className="flex items-center">
-            <Image src={Logo2} alt="Logo 2" width={40} height={40} className="w-auto h-15" />
+            <Image
+              src={Logo2}
+              alt="Logo 2"
+              width={40}
+              height={40}
+              className="w-auto h-15"
+            />
           </Link>
         </div>
       </div>
@@ -177,7 +205,11 @@ export default function Header() {
           {/* Social icons */}
           <div className="mt-auto flex justify-center space-x-6 p-6">
             {[Linkedin, Github, Globe].map((Icon, i) => (
-              <Link key={i} href="#" className="hover:text-[#40916C] transition duration-200">
+              <Link
+                key={i}
+                href="#"
+                className="hover:text-[#40916C] transition duration-200"
+              >
                 <Icon size={22} />
               </Link>
             ))}
