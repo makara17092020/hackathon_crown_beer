@@ -25,43 +25,41 @@ export default function HomePage() {
           <div className="relative z-20 w-full flex flex-col md:flex-row items-center gap-10 md:gap-16 p-6 md:p-12">
             <div className="flex-1 space-y-6">
               <h1 className="text-4xl md:text-5xl font-extrabold text-[#2d241b] leading-tight drop-shadow-lg">
-                Cambodian Craft Beer <br />
-                <span className="text-green-600">Crown 2025</span>
+                Great Cambodian Craft Beer <br />
+                <span className="text-green-600">Festival 2026</span>
               </h1>
               <p className="text-lg md:text-xl text-[#4b463e] drop-shadow">
-                Join us for Cambodia&apos;s premier craft beer competition featuring{" "}
-                <span className="font-semibold text-green-700">11 exceptional breweries</span> competing for the crown.
+                Join us for Cambodia&apos;s premier craft beer festival featuring{" "}
+                <span className="font-semibold text-green-700">14 exceptional breweries</span> and live entertainment.
               </p>
 
               {/* Event Details */}
               <div className="bg-green-100 rounded-xl shadow-lg p-6 flex flex-col gap-4 max-w-md transition-transform hover:scale-[1.02] hover:shadow-xl duration-300">
                 <div className="flex items-center gap-3 text-[#2d241b]">
                   <span className="text-green-600 text-2xl animate-bounce">📅</span>
-                  <span className="font-semibold">August 16, 2025</span>
+                  <span className="font-semibold">January 31, 2026</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#2d241b]">
                   <span className="text-green-600 text-2xl animate-pulse">⏰</span>
-                  <span>2:00 PM – 11:30 PM</span>
+                  <span>2:00 PM – 12:00 AM</span>
                 </div>
                 <div className="flex items-center gap-3 text-[#2d241b]">
                   <span className="text-green-600 text-2xl">📍</span>
                   <div>
-                    <span className="font-semibold">Botanico Craft Beer Garden</span>
-                    <div className="text-sm text-gray-500">Street 29, Phnom Penh</div>
+                    <span className="font-semibold">Coconut Park Koh Pich</span>
+                    <div className="text-sm text-gray-500">Phnom Penh</div>
                   </div>
                 </div>
               </div>
 
               {/* CTA */}
               <div className="flex gap-4 mt-2 flex-wrap">
-                <a
-                  href="https://forms.gle/LPZFNjGQymjVju8B8"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href="/vote"
                   className="bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:shadow-2xl transition-transform transform hover:scale-105"
                 >
                   🍺 VOTE NOW
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -72,18 +70,18 @@ export default function HomePage() {
           {[
             {
               title: "Meet the Breweries",
-              text: "Discover 11 incredible breweries from across Cambodia and learn their unique stories.",
+              text: "Discover 14 incredible breweries from across Cambodia and learn their unique stories.",
               link: "/breweries",
             },
             {
-              title: "Event Timetable",
+              title: "Event Schedule",
               text: "Check out the live music, DJ sets, and award ceremonies scheduled throughout the day.",
-              link: "/timetable",
+              link: "/schedule",
             },
             {
-              title: "Awards",
-              text: "Learn about the Main Award, People’s Choice Award, and Brewer’s Choice Award.",
-              link: "/awards",
+              title: "Vote Now",
+              text: "Share your favorite beer and help us crown the winner of the festival.",
+              link: "/vote",
             },
           ].map((item, i) => (
             <div

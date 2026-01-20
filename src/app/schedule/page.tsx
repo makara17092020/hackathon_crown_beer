@@ -4,17 +4,16 @@ import React from "react";
 import { Music, Clock, Award, Calendar, Users } from "lucide-react";
 
 const items = [
-  { time: "2:00 PM", title: "Event begins", icon: Clock },
-  { time: "3:15 PM", title: "Introduction by the MC", icon: Users },
-  { time: "3:30 PM", title: "DJ Wha-Wah (until 6:30 PM)", icon: Music },
-  { time: "6:40 PM", title: "Blind tasting live session", icon: Award },
-  { time: "7:30 PM", title: "Start award ceremony", icon: Award },
-  {
-    time: "8:30 PM",
-    title: "Live music by The Broken Cymbal (until 11:00 PM)",
-    icon: Music,
-  },
-  { time: "11:30 PM", title: "Event ends", icon: Calendar },
+  { time: "2:00 PM", title: "DJ Cory - Event begins", icon: Music },
+  { time: "2:45 PM to 3:30 PM", title: "Cambodia Sound Base - Live Performance", icon: Music },
+  { time: "4:00 PM to 4:45 PM", title: "Zak Zoot - Live Performance", icon: Music },
+  { time: "5:15 PM to 6:00 PM", title: "Ms Sarawan - Live Performance", icon: Music },
+  { time: "6:30 PM to 7:30 PM", title: "Bustaka Band - Live Performance", icon: Music },
+  { time: "8:00 PM to 9:00 PM", title: "Checkered Past / Brass - Live Performance", icon: Music },
+  { time: "9:05 PM", title: "Yakima Chief Hops 'Festival's favorite' Award", icon: Award },
+  { time: "9:30 PM to 10:30 PM", title: "Kampot Play Boys - Live Performance", icon: Music },
+  { time: "10:30 PM", title: "DJ Cory continues", icon: Music },
+  { time: "11:30 PM", title: "DJ Cory - Event ends", icon: Clock },
 ];
 
 export default function EventTimeLine() {
