@@ -15,10 +15,10 @@ import {
   Calendar,
   Award,
   Vote,
+  User,
 } from "lucide-react";
 
-import Logo1 from "@/images/logo.png";
-import Logo2 from "@/images/logo2.png";
+import BeerFestival from "@/images/BeerFestival.png";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,6 +32,7 @@ export default function Header() {
     { name: "Schedule", href: "/schedule", icon: Calendar },
     { name: "Awards", href: "/awards", icon: Award },
     { name: "Sponsor", href: "/sponsors", icon: Globe },
+    { name: "Admin", href: "/admin/login", icon: User },
   ];
 
   const voteFormUrl = "https://forms.gle/LPZFNjGQymjVju8B8";
@@ -49,13 +50,20 @@ export default function Header() {
           <Menu size={24} />
         </button>
 
-        {/* Desktop logos on left */}
-        <div className="hidden md:flex items-center space-x-4">
-          <Link href="/" className="flex items-center">
-            <Image src={Logo1} alt="Logo 1" width={40} height={40} className="w-auto h-15" />
-          </Link>
-          <Link href="/" className="flex items-center">
-            <Image src={Logo2} alt="Logo 2" width={40} height={40} className="w-auto h-15" />
+        {/* Desktop logo on left */}
+        <div className="hidden md:flex items-center">
+          <Link
+            href="/"
+            className="flex items-center group transition-transform hover:scale-105"
+          >
+            <Image
+              src={BeerFestival} // Your new imported logo
+              alt="Great Cambodian Craft Beer Festival"
+              width={180}
+              height={60}
+              priority
+              className="w-auto h-12 md:h-14"
+            />
           </Link>
         </div>
 
@@ -79,7 +87,9 @@ export default function Header() {
                 />
                 <span
                   className={`${
-                    isActive ? "text-green-700 font-semibold" : "group-hover:text-[#40916C]"
+                    isActive
+                      ? "text-green-700 font-semibold"
+                      : "group-hover:text-[#40916C]"
                   } transition duration-200
                   after:content-[''] after:absolute after:w-0 after:h-[2px]
                   after:bg-[#FFD166] after:left-0 after:bottom-[-4px]
@@ -107,37 +117,41 @@ export default function Header() {
         {/* Mobile logos on right */}
         <div className="flex md:hidden items-center space-x-3">
           <Link href="/" className="flex items-center">
-            <Image src={Logo1} alt="Logo 1" width={40} height={40} className="w-auto h-15" />
-          </Link>
-          <Link href="/" className="flex items-center">
-            <Image src={Logo2} alt="Logo 2" width={40} height={40} className="w-auto h-15" />
+            <Image
+              src={BeerFestival} // Your new imported logo
+              alt="Great Cambodian Craft Beer Festival"
+              width={120} // Adjusted width for better mobile display
+              height={40}
+              className="w-auto h-10" // h-15 was a bit large, h-10 fits standard headers better
+              priority
+            />
           </Link>
         </div>
-      </div>
 
-      {/* Mobile menu overlay */}
-      <div
-        className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
-        onClick={closeMenu}
-      >
+        {/* Mobile menu overlay */}
         <div
-          className={`absolute left-0 top-0 h-full w-72 text-[#1B4332] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 ${
-            isOpen ? "translate-x-0" : "-translate-x-full"
+          className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${
+            isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
-          onClick={(e) => e.stopPropagation()}
+          onClick={closeMenu}
         >
-          {/* Close button */}
-          <div className="flex justify-end p-4">
-            <button
-              onClick={closeMenu}
-              className="p-1 rounded hover:bg-[#1B4332] hover:text-white text-[#1B4332] transition"
-              aria-label="Close Menu"
-              type="button"
-            >
-              <X size={20} />
-            </button>
+          <div
+            className={`absolute left-0 top-0 h-full w-72 text-[#1B4332] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 ${
+              isOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <div className="flex justify-end p-4">
+              <button
+                onClick={closeMenu}
+                className="p-1 rounded hover:bg-[#1B4332] hover:text-white text-[#1B4332] transition"
+                aria-label="Close Menu"
+                type="button"
+              >
+                <X size={20} />
+              </button>
+            </div>
           </div>
 
           {/* Mobile nav */}
@@ -177,7 +191,11 @@ export default function Header() {
           {/* Social icons */}
           <div className="mt-auto flex justify-center space-x-6 p-6">
             {[Linkedin, Github, Globe].map((Icon, i) => (
-              <Link key={i} href="#" className="hover:text-[#40916C] transition duration-200">
+              <Link
+                key={i}
+                href="#"
+                className="hover:text-[#40916C] transition duration-200"
+              >
                 <Icon size={22} />
               </Link>
             ))}
