@@ -1,76 +1,116 @@
 "use client";
-
 import VoteForm from "@/components/VoteForm";
-import { Star, Beer } from "lucide-react";
+import { Star, Beer, CheckCircle2, Lightbulb, Trophy } from "lucide-react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function VotePage() {
+  const { data: session, status } = useSession();
+  const isLoading = status === "loading";
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50 px-4 sm:px-6 py-12">
       <section className="max-w-3xl mx-auto">
-        {/* Header */}
+        {/* Header Section */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Beer className="w-10 h-10 text-green-600" />
+            <Beer className="w-10 h-10 text-green-600 animate-bounce" />
             <h1 className="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
-              Vote for Your Favorite Beer
+              Beer Crown 2026
             </h1>
-            <Star className="w-10 h-10 text-amber-500" />
+            <Star className="w-10 h-10 text-amber-500 animate-pulse" />
           </div>
-          <p className="text-lg text-gray-700 font-medium">
-            Help us crown the best beer at the Great Cambodian Craft Beer Festival 2026
+          <p className="text-lg text-gray-700 font-medium max-w-xl mx-auto">
+            Help us crown the best brew at the Great Cambodian Craft Beer
+            Festival!
           </p>
         </div>
 
-        {/* Main Form Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-8">
+        {/* Main Voting Card */}
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-8 border border-green-100">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className="text-3xl">🍺</span>
-              Easy 3-Step Voting
+              <Trophy className="w-6 h-6 text-yellow-300" />
+              {session
+                ? `Welcome, ${session.user?.name?.split(" ")[0]}`
+                : "Sign in to Participate"}
             </h2>
           </div>
+
           <div className="p-8 sm:p-10">
-            <VoteForm />
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full mb-4"></div>
+                <p className="text-green-700 font-medium">Loading session...</p>
+              </div>
+            ) : session ? (
+              <VoteForm userEmail={session.user?.email} />
+            ) : (
+              <div className="text-center py-6">
+                <div className="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                  <Star className="w-10 h-10 text-green-600" />
+                </div>
+                <p className="text-gray-600 mb-8 text-lg">
+                  To ensure a fair competition (one vote per beer), please
+                  authenticate with Google.
+                </p>
+                <button
+                  onClick={() => signIn("google")}
+                  className="flex items-center gap-3 mx-auto bg-white border-2 border-gray-200 px-8 py-4 rounded-xl font-bold text-gray-700 hover:border-green-500 hover:bg-green-50 transition-all shadow-sm transform hover:scale-105"
+                >
+                  <img
+                    src="https://www.svgrepo.com/show/355037/google.svg"
+                    className="w-6 h-6"
+                    alt="Google"
+                  />
+                  Continue with Gmail
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Instructions Card */}
-        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-2xl p-8">
-          <h3 className="text-2xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white rounded-full text-sm font-bold">?</span>
-            How It Works
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-3">
-                1
-              </div>
-              <h4 className="font-bold text-gray-900 mb-2">Choose Brewery</h4>
-              <p className="text-sm text-gray-700">Select from our amazing list of participating breweries</p>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-3">
-                2
-              </div>
-              <h4 className="font-bold text-gray-900 mb-2">Pick a Beer</h4>
-              <p className="text-sm text-gray-700">Select the specific beer from that brewery you tasted</p>
-            </div>
-
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-green-600 text-white rounded-full flex items-center justify-center text-3xl font-bold mb-3">
-                3
-              </div>
-              <h4 className="font-bold text-gray-900 mb-2">Rate It</h4>
-              <p className="text-sm text-gray-700">Rate on a scale of 1-10 and submit your vote</p>
-            </div>
+        {/* Instructions & Pro-Tips Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* How to Vote */}
+          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+              <CheckCircle2 className="text-green-600 w-5 h-5" />
+              How to Vote
+            </h3>
+            <ul className="space-y-4 text-sm text-gray-600">
+              <li className="flex gap-3">
+                <span className="font-bold text-green-600">01.</span>
+                Select the brewery from the dropdown list.
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-green-600">02.</span>
+                Find the specific beer you just tasted.
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-green-600">03.</span>
+                Slide the bar to rate it from 1 to 10 and submit!
+              </li>
+            </ul>
           </div>
 
-          <div className="mt-8 pt-8 border-t-2 border-blue-200">
-            <p className="text-sm text-blue-900 font-semibold flex items-center gap-2">
-              <span>💡</span>
-              Pro Tip: You can vote for multiple beers! Feel free to vote for your favorite from each brewery.
-            </p>
+          {/* Pro-Tips */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl shadow-lg border border-amber-100">
+            <h3 className="flex items-center gap-2 font-bold text-amber-800 mb-4">
+              <Lightbulb className="text-amber-600 w-5 h-5" />
+              Pro-Tips
+            </h3>
+            <ul className="space-y-4 text-sm text-amber-900/80">
+              <li className="flex items-start gap-2">
+                <span>🎯</span>
+                You can vote for as many <strong>different</strong> beers as you
+                like, but only once per beer!
+              </li>
+              <li className="flex items-start gap-2">
+                <span>👅</span>
+                Cleanse your palate with water between tastings for the most
+                accurate rating.
+              </li>
+            </ul>
           </div>
         </div>
       </section>

@@ -3,22 +3,53 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BEERS } from "@/utils/beers";
+import {
+  Trophy,
+  Star,
+  Beer,
+  Settings,
+  LogOut,
+  RefreshCcw,
+  Download,
+} from "lucide-react";
 
 type Vote = {
-  beerId: string;
-  beerName?: string;
-  brewery?: string;
+  _id: string;
+  userEmail: string;
+  productId: string;
+  beerName: string;
+  brewery: string;
   rating: number;
-  submittedAt: string;
+  votedAt: string;
 };
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [votes, setVotes] = useState<Vote[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"overview" | "beers" | "settings">(
     "overview",
   );
   const [beerFilter, setBeerFilter] = useState("");
+  const [toast, setToast] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const fetchVotes = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/votes");
+      if (res.ok) {
+        const data = await res.json();
+        setVotes(data);
+      }
+    } catch (e) {
+      showToast("Failed to load votes", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function init() {
@@ -28,438 +59,328 @@ export default function AdminDashboard() {
           router.push("/admin/login");
           return;
         }
+        await fetchVotes();
       } catch (e) {
         router.push("/admin/login");
-        return;
       }
-      const stash = JSON.parse(localStorage.getItem("ccb_votes") || "[]");
-      setVotes(stash);
     }
     init();
   }, [router]);
 
+  // Calculate statistics for beers that HAVE votes
   const stats = useMemo(() => {
     const map: Record<
       string,
       {
-        beerId: string;
+        productId: string;
         name: string;
-        brewery?: string;
+        brewery: string;
         count: number;
-        avgRating: number;
         ratings: number[];
       }
     > = {};
-
     votes.forEach((v) => {
-      if (!map[v.beerId]) {
-        const beer = BEERS.find((b) => b.id === v.beerId);
-        map[v.beerId] = {
-          beerId: v.beerId,
-          name: beer?.name || v.beerName || "Unknown",
-          brewery: beer?.brewery || v.brewery,
+      if (!map[v.productId]) {
+        map[v.productId] = {
+          productId: v.productId,
+          name: v.beerName,
+          brewery: v.brewery,
           count: 0,
-          avgRating: 0,
           ratings: [],
         };
       }
-      map[v.beerId].count += 1;
-      map[v.beerId].ratings.push(v.rating);
+      map[v.productId].count += 1;
+      map[v.productId].ratings.push(v.rating);
     });
-
-    return Object.values(map).map((m) => ({
-      ...m,
-      avgRating: m.ratings.length
-        ? +(m.ratings.reduce((a, b) => a + b, 0) / m.ratings.length).toFixed(2)
-        : 0,
-    }));
+    return Object.values(map)
+      .map((m) => ({
+        ...m,
+        avgRating: +(
+          m.ratings.reduce((a, b) => a + b, 0) / m.ratings.length
+        ).toFixed(2),
+      }))
+      .sort((a, b) => b.avgRating - a.avgRating || b.count - a.count); // Rank by rating first
   }, [votes]);
 
   const totalVotes = votes.length;
   const avgRatingOverall = useMemo(() => {
     if (votes.length === 0) return 0;
-    const sum = votes.reduce((s, v) => s + Number(v.rating || 0), 0);
-    return +(sum / votes.length).toFixed(2);
+    return +(votes.reduce((s, v) => s + v.rating, 0) / votes.length).toFixed(2);
   }, [votes]);
 
-  const top5 = useMemo(() => {
-    return stats
-      .slice()
-      .sort((a, b) => b.count - a.count || b.avgRating - a.avgRating)
-      .slice(0, 5);
-  }, [stats]);
-
   async function handleLogout() {
-    try {
-      await fetch("/api/admin/logout", { method: "POST" });
-    } catch (e) {
-      // ignore
-    }
+    await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
   }
 
-  function handleRefresh() {
-    const stash = JSON.parse(localStorage.getItem("ccb_votes") || "[]");
-    setVotes(stash);
-  }
-
-  // Toast for transient messages
-  const [toast, setToast] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
   function showToast(message: string, type: "success" | "error" = "success") {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }
 
-  function handleClearVotes() {
-    try {
-      localStorage.removeItem("ccb_votes");
+  async function handleClearVotes() {
+    if (!confirm("Permanently delete all votes?")) return;
+    const res = await fetch("/api/admin/votes", { method: "DELETE" });
+    if (res.ok) {
       setVotes([]);
-      showToast("Cleared votes successfully", "success");
-    } catch (e) {
-      showToast("Could not clear votes", "error");
+      showToast("Database cleared");
     }
   }
 
   function handleExportCSV() {
-    const headers = ["beerId", "beerName", "brewery", "rating", "submittedAt"];
-    const rows = votes.map((v) => [
-      v.beerId,
-      v.beerName || "",
-      v.brewery || "",
-      String(v.rating),
-      v.submittedAt,
-    ]);
+    const headers = ["User", "Beer", "Brewery", "Rating", "Date"];
     const csv = [
       headers.join(","),
-      ...rows.map((r) =>
-        r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","),
+      ...votes.map((v) =>
+        [v.userEmail, v.beerName, v.brewery, v.rating, v.votedAt].join(","),
       ),
     ].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `ccb_votes_${new Date().toISOString()}.csv`;
+    a.download = `beer_votes_${new Date().toLocaleDateString()}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
   }
 
-  // Small inline SVG horizontal bar chart for top 5
-  const BarChart: React.FC<{ data: typeof top5 }> = ({ data }) => {
-    if (!data || data.length === 0)
-      return <div className="text-gray-500">No data</div>;
-    const max = Math.max(...data.map((d) => d.count));
-    return (
-      <div className="space-y-3">
-        {data.map((d) => (
-          <div key={d.beerId} className="flex items-center gap-3">
-            <div className="w-36 text-sm font-medium text-gray-700">
-              {d.name}
-            </div>
-            <div className="flex-1">
-              <div className="h-4 bg-gray-100 rounded overflow-hidden">
-                <div
-                  className="h-4 bg-gradient-to-r from-emerald-500 to-green-500"
-                  style={{ width: `${(d.count / (max || 1)) * 100}%` }}
-                />
-              </div>
-            </div>
-            <div className="w-12 text-right text-sm font-semibold">
-              {d.count}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-[70vh] container mx-auto py-8 px-4">
-      <div className="flex gap-6 h-full">
-        {/* Sidebar */}
-        <aside className="w-64 h-full bg-emerald-700 text-white rounded-lg p-4 shadow-md flex flex-col">
-          <div className="mb-6">
-            <h2 className="text-lg font-bold">Admin</h2>
-            <div className="text-sm text-emerald-100/80">Dashboard</div>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <aside className="w-72 bg-emerald-900 text-white p-6 flex flex-col shadow-2xl">
+        <div className="mb-10">
+          <h2 className="text-2xl font-black tracking-tighter flex items-center gap-2">
+            <Trophy className="text-amber-400" /> CROWN ADMIN
+          </h2>
+          <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest mt-1">
+            Festival 2026
+          </p>
+        </div>
+
+        <nav className="space-y-2 flex-1">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === "overview" ? "bg-emerald-700 shadow-lg" : "hover:bg-emerald-800"}`}
+          >
+            <Star size={18} /> Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("beers")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === "beers" ? "bg-emerald-700 shadow-lg" : "hover:bg-emerald-800"}`}
+          >
+            <Beer size={18} /> All Beers
+          </button>
+          <button
+            onClick={() => setActiveTab("settings")}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition ${activeTab === "settings" ? "bg-emerald-700 shadow-lg" : "hover:bg-emerald-800"}`}
+          >
+            <Settings size={18} /> Settings
+          </button>
+        </nav>
+
+        <div className="pt-6 border-t border-emerald-800 space-y-3">
+          <button
+            onClick={fetchVotes}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-800 hover:bg-emerald-700 rounded-lg text-sm font-semibold transition"
+          >
+            <RefreshCcw size={16} /> Refresh
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-amber-600 hover:bg-amber-500 rounded-lg text-sm font-semibold transition"
+          >
+            <Download size={16} /> Export CSV
+          </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2.5 bg-white text-emerald-900 hover:bg-gray-100 rounded-lg text-sm font-bold transition"
+          >
+            <LogOut size={16} /> Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 p-10 overflow-y-auto">
+        {toast && (
+          <div
+            className={`fixed top-10 right-10 p-4 rounded-xl text-white shadow-2xl z-50 animate-bounce ${toast.type === "success" ? "bg-emerald-600" : "bg-red-600"}`}
+          >
+            {toast.message}
           </div>
+        )}
 
-          <nav className="space-y-2 mb-4">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`w-full text-left px-3 py-2 rounded ${
-                activeTab === "overview"
-                  ? "bg-emerald-600/90 font-semibold"
-                  : "hover:bg-emerald-600/80"
-              }`}
-            >
-              Overview
-            </button>
-            <button
-              onClick={() => setActiveTab("beers")}
-              className={`w-full text-left px-3 py-2 rounded ${
-                activeTab === "beers"
-                  ? "bg-emerald-600/90 font-semibold"
-                  : "hover:bg-emerald-600/80"
-              }`}
-            >
-              Beers
-            </button>
-            <button
-              onClick={() => setActiveTab("settings")}
-              className={`w-full text-left px-3 py-2 rounded ${
-                activeTab === "settings"
-                  ? "bg-emerald-600/90 font-semibold"
-                  : "hover:bg-emerald-600/80"
-              }`}
-            >
-              Settings
-            </button>
-          </nav>
+        <header className="mb-10">
+          <h1 className="text-4xl font-black text-gray-900 capitalize">
+            {activeTab} Dashboard
+          </h1>
+          <p className="text-gray-500 mt-2 font-medium">
+            Monitoring the Great Cambodian Craft Beer Festival
+          </p>
+        </header>
 
-          <div className="mt-auto space-y-3">
-            <button
-              onClick={handleRefresh}
-              className="w-full px-3 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-500"
-            >
-              Refresh
-            </button>
-            <button
-              onClick={handleExportCSV}
-              className="w-full px-3 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-400"
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={handleLogout}
-              className="w-full px-3 py-2 bg-emerald-50 text-emerald-700 rounded-md hover:bg-emerald-100"
-            >
-              Logout
-            </button>
+        {loading ? (
+          <div className="h-96 flex flex-col items-center justify-center text-emerald-600">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mb-4"></div>
+            <p className="font-bold">Syncing with MongoDB...</p>
           </div>
-        </aside>
-
-        {/* Main content */}
-        <main className="flex-1 relative">
-          {/* Toast */}
-          {toast && (
-            <div
-              role="status"
-              aria-live="polite"
-              className={`fixed right-6 top-6 z-50 px-4 py-2 rounded shadow-lg text-sm font-medium ${
-                toast.type === "success"
-                  ? "bg-emerald-600 text-white"
-                  : "bg-red-600 text-white"
-              }`}
-            >
-              {toast.message}
+        ) : activeTab === "overview" ? (
+          <div className="space-y-8">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-3 gap-8">
+              <div className="bg-white p-8 rounded-3xl shadow-sm border-b-4 border-emerald-500">
+                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
+                  Total Votes
+                </p>
+                <p className="text-5xl font-black text-gray-900 mt-2">
+                  {totalVotes}
+                </p>
+              </div>
+              <div className="bg-white p-8 rounded-3xl shadow-sm border-b-4 border-amber-500">
+                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
+                  Avg Rating
+                </p>
+                <p className="text-5xl font-black text-gray-900 mt-2">
+                  {avgRatingOverall}
+                </p>
+              </div>
+              <div className="bg-white p-8 rounded-3xl shadow-sm border-b-4 border-blue-500">
+                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest">
+                  Active Beers
+                </p>
+                <p className="text-5xl font-black text-gray-900 mt-2">
+                  {stats.length}
+                </p>
+              </div>
             </div>
-          )}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-              <div className="text-sm text-gray-600">
-                Votes & results overview
+
+            {/* Leaderboard */}
+            <div className="bg-white rounded-3xl shadow-sm border overflow-hidden">
+              <div className="p-6 border-b bg-gray-50 flex justify-between items-center">
+                <h3 className="font-black text-gray-800 uppercase tracking-tight">
+                  🏆 High-Rated Leaderboard
+                </h3>
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  Sorted by Average Rating
+                </span>
               </div>
-            </div>
-          </div>
-
-          {activeTab === "overview" && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div className="bg-white p-5 rounded-lg shadow border">
-                  <div className="text-sm text-gray-500">Total votes</div>
-                  <div className="mt-2 text-2xl font-bold text-emerald-700">
-                    {totalVotes}
-                  </div>
-                </div>
-
-                <div className="bg-white p-5 rounded-lg shadow border">
-                  <div className="text-sm text-gray-500">Distinct beers</div>
-                  <div className="mt-2 text-2xl font-bold">{stats.length}</div>
-                </div>
-
-                <div className="bg-white p-5 rounded-lg shadow border">
-                  <div className="text-sm text-gray-500">Average rating</div>
-                  <div className="mt-2 text-2xl font-bold text-amber-600">
-                    {avgRatingOverall || "—"}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-2 bg-white p-4 rounded-lg shadow border">
-                  <h2 className="font-semibold mb-3">Top Beers</h2>
-                  {top5.length === 0 ? (
-                    <div className="text-gray-600">No votes recorded yet.</div>
-                  ) : (
-                    <BarChart data={top5} />
-                  )}
-                </div>
-
-                <div className="bg-white p-4 rounded-lg shadow border">
-                  <h2 className="font-semibold mb-3">Top Results (table)</h2>
-                  {stats.length === 0 ? (
-                    <div className="text-gray-600 text-sm">
-                      No votes recorded yet.
-                    </div>
-                  ) : (
-                    <div className="overflow-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-left text-xs text-gray-500">
-                            <th className="pb-2">Beer</th>
-                            <th className="pb-2">Votes</th>
-                            <th className="pb-2">Avg</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {stats
-                            .slice()
-                            .sort(
-                              (a, b) =>
-                                b.count - a.count || b.avgRating - a.avgRating,
-                            )
-                            .map((s) => (
-                              <tr key={s.beerId} className="border-t">
-                                <td className="py-2 font-medium">{s.name}</td>
-                                <td className="py-2">{s.count}</td>
-                                <td className="py-2">{s.avgRating}</td>
-                              </tr>
-                            ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-
-          {activeTab === "beers" && (
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">All Beers</h2>
-                <div className="flex items-center gap-2">
-                  <input
-                    value={beerFilter}
-                    onChange={(e) => setBeerFilter(e.target.value)}
-                    placeholder="Search beers or breweries..."
-                    className="px-3 py-2 border rounded-md w-64"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {BEERS.filter((b) => {
-                  if (!beerFilter) return true;
-                  const q = beerFilter.toLowerCase();
-                  return (
-                    b.name.toLowerCase().includes(q) ||
-                    b.brewery.toLowerCase().includes(q) ||
-                    b.style.toLowerCase().includes(q)
-                  );
-                }).map((beer) => {
-                  const s = stats.find((st) => st.beerId === beer.id);
-                  const max = Math.max(...stats.map((x) => x.count), 1);
-                  const pct = Math.round(((s?.count || 0) / max) * 100);
-                  const initials = beer.name
-                    .split(" ")
-                    .map((w) => w[0])
-                    .slice(0, 2)
-                    .join("");
-                  return (
+              <div className="divide-y">
+                {stats.length > 0 ? (
+                  stats.map((s, index) => (
                     <div
-                      key={beer.id}
-                      className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition"
+                      key={s.productId}
+                      className="p-6 flex items-center justify-between hover:bg-emerald-50/30 transition"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                            {initials}
-                          </div>
-                          <div>
-                            <div className="font-semibold">{beer.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {beer.brewery}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold">
-                            {s?.avgRating || "—"} / 10
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {s?.count || 0} votes
-                          </div>
+                      <div className="flex items-center gap-6">
+                        <span
+                          className={`text-2xl font-black w-8 ${index < 3 ? "text-amber-500" : "text-gray-300"}`}
+                        >
+                          #{index + 1}
+                        </span>
+                        <div>
+                          <p className="font-extrabold text-gray-900 text-lg">
+                            {s.name}
+                          </p>
+                          <p className="text-sm text-gray-500 font-medium">
+                            {s.brewery}
+                          </p>
                         </div>
                       </div>
-
-                      <div className="mt-2">
-                        <div className="h-2 bg-gray-100 rounded overflow-hidden">
-                          <div
-                            className="h-2 bg-gradient-to-r from-emerald-500 to-green-500"
-                            style={{ width: `${pct}%` }}
-                          />
+                      <div className="flex items-center gap-12">
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-gray-400 uppercase">
+                            Votes
+                          </p>
+                          <p className="font-bold text-gray-900">{s.count}</p>
                         </div>
-                        <div className="mt-2 text-xs text-gray-500">
-                          {pct}% of top votes
+                        <div className="text-right bg-amber-50 px-6 py-2 rounded-2xl border border-amber-100">
+                          <p className="text-xs font-bold text-amber-600 uppercase">
+                            Rating
+                          </p>
+                          <p className="text-2xl font-black text-amber-700">
+                            {s.avgRating}
+                            <span className="text-sm text-amber-500">/10</span>
+                          </p>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  ))
+                ) : (
+                  <div className="p-20 text-center text-gray-400 font-medium">
+                    No votes recorded yet.
+                  </div>
+                )}
               </div>
             </div>
-          )}
-
-          {activeTab === "settings" && (
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
-              <h2 className="text-xl font-bold mb-6 text-gray-800">Settings</h2>
-              <div className="space-y-6 text-gray-700">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="font-semibold text-lg mb-2">
-                    Admin Username
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    (Configured in server .env file)
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="font-semibold text-lg mb-2">
-                    Votes Storage
-                  </div>
-                  <div className="text-sm text-gray-600 mb-4">
-                    Votes are currently stored in browser localStorage under the
-                    key{" "}
-                    <code className="bg-gray-200 px-1 py-0.5 rounded">
-                      ccb_votes
-                    </code>{" "}
-                    for demonstration purposes.
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleClearVotes}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-200"
-                    >
-                      Clear All Votes
-                    </button>
-                    <button
-                      onClick={handleRefresh}
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition duration-200"
-                    >
-                      Refresh View
-                    </button>
-                  </div>
-                </div>
-              </div>
+          </div>
+        ) : activeTab === "beers" ? (
+          <div className="space-y-6">
+            <div className="relative">
+              <input
+                className="w-full p-4 pl-12 bg-white border rounded-2xl shadow-sm focus:ring-2 focus:ring-emerald-500 outline-none transition"
+                placeholder="Search by beer name or brewery..."
+                onChange={(e) => setBeerFilter(e.target.value)}
+              />
+              <Beer
+                className="absolute left-4 top-4.5 text-gray-400"
+                size={20}
+              />
             </div>
-          )}
-        </main>
-      </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {BEERS.filter(
+                (b) =>
+                  b.name.toLowerCase().includes(beerFilter.toLowerCase()) ||
+                  b.brewery.toLowerCase().includes(beerFilter.toLowerCase()),
+              ).map((beer) => {
+                const s = stats.find((st) => st.productId === beer.id);
+                return (
+                  <div
+                    key={beer.id}
+                    className="bg-white p-6 rounded-2xl border flex items-center justify-between shadow-sm hover:shadow-md transition"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-black">
+                        {beer.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900">{beer.name}</h4>
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-tighter">
+                          {beer.brewery} • {beer.style}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right border-l pl-6">
+                      <p className="text-2xl font-black text-gray-900">
+                        {s?.count || 0}
+                      </p>
+                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                        Total Votes
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-2xl bg-white p-10 rounded-3xl border shadow-sm">
+            <h3 className="text-2xl font-black text-red-600 mb-4 flex items-center gap-2">
+              <Settings /> System Maintenance
+            </h3>
+            <p className="text-gray-600 mb-8 leading-relaxed">
+              Danger: Clearing the database will permanently delete all voter
+              records and scores for the 2026 Festival. Please export a CSV
+              backup first.
+            </p>
+            <button
+              onClick={handleClearVotes}
+              className="w-full py-4 bg-red-50 text-red-600 border-2 border-red-200 rounded-2xl font-black hover:bg-red-600 hover:text-white transition-all"
+            >
+              PURGE ALL DATABASE RECORDS
+            </button>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

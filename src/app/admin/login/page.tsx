@@ -4,8 +4,10 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Eye, EyeOff } from "lucide-react";
-import Logo1 from "@/images/logo.png";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+
+// Using the logo path confirmed in your file explorer
+import BeerFestival from "@/images/BeerFestival.png";
 
 export default function AdminLogin() {
   const router = useRouter();
@@ -15,13 +17,12 @@ export default function AdminLogin() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // check server-side cookie
     async function check() {
       try {
         const res = await fetch("/api/admin/check");
         if (res.ok) router.push("/admin/dashboard");
       } catch (e) {
-        // ignore
+        /* ignore */
       }
     }
     check();
@@ -48,85 +49,97 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-amber-50 py-12 px-4">
-      <div className="w-full max-w-lg bg-white/70 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-gray-100">
-        <div className="flex items-center gap-4 mb-6">
-          <Image
-            src={Logo1}
-            alt="logo"
-            width={48}
-            height={48}
-            className="rounded-md"
-          />
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FDFB] py-12 px-4">
+      <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 animate-slideUp">
+        {/* Header with Logo */}
+        <div className="flex items-center gap-4 mb-10">
+          <div className="p-2 bg-emerald-50 rounded-2xl">
+            <Image
+              src={BeerFestival}
+              alt="Festival Logo"
+              width={50}
+              height={50}
+              className="w-10 h-10 object-contain"
+            />
+          </div>
+          <div className="h-10 w-[1px] bg-gray-200 mx-1"></div>
           <div>
-            <h2 className="text-2xl font-extrabold text-emerald-700">
+            <h2 className="text-2xl font-black text-emerald-900 tracking-tight">
               Admin Portal
             </h2>
-            <p className="text-sm text-gray-600">
-              Secure access to vote results and exports
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+              Secure Festival Management
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Username Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">
               Username
             </label>
             <input
               type="text"
+              name="admin-user-field"
+              autoComplete="off" // Disables autofill suggestions
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-200 shadow-sm"
-              placeholder="admin"
+              className="block w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white focus:border-emerald-500 transition-all text-gray-700 font-medium"
             />
           </div>
 
+          {/* Password Field */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">
               Password
             </label>
             <div className="relative">
               <input
                 type={visible ? "text" : "password"}
+                name="admin-pass-field"
+                autoComplete="new-password" // Disables password autofill
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-200 shadow-sm"
-                placeholder="Enter admin password"
-                autoFocus
+                className="block w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white focus:border-emerald-500 transition-all text-gray-700 font-medium"
               />
               <button
                 type="button"
                 onClick={() => setVisible((v) => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-gray-800"
-                aria-label={visible ? "Hide password" : "Show password"}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
               >
-                {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+                {visible ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          {error && <div className="text-sm text-red-600">{error}</div>}
+          {error && (
+            <div className="bg-red-50 text-red-600 text-xs font-bold p-4 rounded-xl border border-red-100 animate-fadeIn">
+              {error}
+            </div>
+          )}
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 pt-2">
             <button
               type="submit"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-lg font-semibold shadow hover:scale-[1.01] transition-transform"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-emerald-200 transition-all active:scale-95"
             >
-              <span>Sign in</span>
+              Sign in
             </button>
 
-            <Link href="/" className="text-sm text-gray-600 hover:underline">
-              Back to home
+            <Link
+              href="/"
+              className="text-sm font-bold text-gray-400 hover:text-emerald-600 transition-colors px-2"
+            >
+              Back
             </Link>
           </div>
         </form>
 
-        <div className="mt-6 text-xs text-gray-500">
-          Note: Credentials are checked server-side. Set{" "}
-          <code className="mx-1">ADMIN_USERNAME</code> and{" "}
-          <code className="mx-1">ADMIN_PASSWORD</code> in your environment
-          (.env) on the server.
+        <div className="mt-10 text-center">
+          <p className="text-[10px] font-bold text-gray-300 uppercase tracking-[0.2em]">
+            © 2026 Great Cambodian Craft Beer Festival
+          </p>
         </div>
       </div>
     </div>
