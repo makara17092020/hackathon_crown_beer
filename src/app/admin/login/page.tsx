@@ -21,7 +21,7 @@ export default function AdminLogin() {
       try {
         const res = await fetch("/api/admin/check");
         if (res.ok) router.push("/admin/dashboard");
-      } catch (e) {
+      } catch (_err) {
         /* ignore */
       }
     }
@@ -43,7 +43,7 @@ export default function AdminLogin() {
       } else {
         setError(data?.message || "Invalid credentials");
       }
-    } catch (err) {
+    } catch (_err) {
       setError("Network error");
     }
   }

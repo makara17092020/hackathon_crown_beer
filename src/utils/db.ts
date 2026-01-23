@@ -6,11 +6,21 @@ if (!MONGODB_URI) {
   throw new Error("MONGODB_URI is not defined");
 }
 
-// Prevent multiple connections in dev
-let cached = (global as any).mongoose;
+// Fixed 'any' by defining a proper interface for the global cache
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: MongooseCache | undefined;
+}
+
+const cached = global.mongoose || { conn: null, promise: null };
+
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
 export default async function connectDB() {
@@ -19,12 +29,11 @@ export default async function connectDB() {
   }
 
   if (!cached.promise) {
-    // Adding the "!" tells TypeScript MONGODB_URI is definitely a string here
     cached.promise = mongoose
       .connect(MONGODB_URI!)
-      .then((mongoose) => {
+      .then((m) => {
         console.log("MongoDB connected");
-        return mongoose;
+        return m;
       })
       .catch((err) => {
         console.error("MongoDB error:", err);

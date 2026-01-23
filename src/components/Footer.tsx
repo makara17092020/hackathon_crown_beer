@@ -1,26 +1,24 @@
-import { Beer, MapPin, Calendar, Clock } from "lucide-react";
+import { Beer as BeerIcon, MapPin, Calendar, Clock } from "lucide-react";
 
 export default function Footer() {
   return (
     <footer className="bg-white border-t border-green-100 font-inter text-gray-700 py-10 mt-20">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-          {/* Brand and Description */}
           <div className="max-w-sm">
             <div className="flex items-center gap-2 mb-4">
-              <Beer className="w-6 h-6 text-green-600" />
+              <BeerIcon className="w-6 h-6 text-green-600" />
               <h3 className="text-xl font-bold text-green-800 leading-tight">
                 Great Cambodian Craft Beer <br /> Festival 2026
               </h3>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
-              Join us for Cambodia's premier craft beer festival featuring 14
-              exceptional breweries and live entertainment. A celebration of
+              Join us for Cambodia&apos;s premier craft beer festival featuring
+              14 exceptional breweries and live entertainment. A celebration of
               local craft culture!
             </p>
           </div>
 
-          {/* Event Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
               <h4 className="font-bold text-gray-900 uppercase text-xs tracking-wider">
@@ -52,7 +50,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom Bar */}
         <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400">
           <p>© 2026 CBAC — Cambodian Craft Beer Association</p>
           <div className="flex gap-6">

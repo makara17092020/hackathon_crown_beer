@@ -2,26 +2,27 @@
 import connectDB from "@/utils/db";
 import Vote from "@/models/Vote";
 
-export async function submitBeerVote(payload: {
+interface VotePayload {
   userEmail: string;
   productId: string;
   beerName: string;
   brewery: string;
   rating: number;
-}) {
+}
+
+export async function submitBeerVote(payload: VotePayload) {
   try {
     await connectDB();
-
     await Vote.create(payload);
-
     return { success: true };
-  } catch (error: any) {
-    // MongoDB error code 11000 is for unique index violations
-    if (error.code === 11000) {
+  } catch (error: unknown) {
+    // Handling the error as an unknown type safely
+    const err = error as { code?: number };
+
+    if (err.code === 11000) {
       return {
         success: false,
-        message:
-          "You have already voted for this specific beer! You can still vote for others.",
+        message: "You have already voted for this specific beer!",
       };
     }
     return {
