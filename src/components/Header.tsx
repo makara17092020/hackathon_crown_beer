@@ -192,19 +192,6 @@ export default function Header() {
                 <span>Vote Now</span>
               </a>
             </nav>
-
-            {/* Social icons at bottom of sidebar */}
-            <div className="mt-auto flex justify-center space-x-8 p-8 border-t bg-gray-50 rounded-br-xl">
-              {[Linkedin, Github, Globe].map((Icon, i) => (
-                <Link
-                  key={i}
-                  href="#"
-                  className="text-gray-500 hover:text-[#40916C] transition duration-200"
-                >
-                  <Icon size={24} />
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       </div>
