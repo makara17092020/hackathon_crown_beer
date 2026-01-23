@@ -1,215 +1,234 @@
 "use client";
-import { useState, useMemo } from "react";
-import { BEERS } from "@/utils/beers";
-import { submitBeerVote } from "@/lib/actions/Vote";
+import { useState, useEffect, useMemo } from "react";
+import Image from "next/image";
+import { CheckCircle, Loader2, Send } from "lucide-react";
 
-interface VoteFormProps {
-  userEmail: string | null | undefined;
+interface Brewery {
+  _id: string;
+  name: string;
+  logoUrl: string;
+  description: string;
 }
 
-const BREWERIES = Array.from(new Set(BEERS.map((beer) => beer.brewery))).sort();
-
-export default function VoteForm({ userEmail }: VoteFormProps) {
-  const [selectedBrewery, setSelectedBrewery] = useState<string>("");
-  const [selectedBeer, setSelectedBeer] = useState<string>("");
+export default function VoteForm({
+  userEmail,
+}: {
+  userEmail: string | null | undefined;
+}) {
+  const [breweries, setBreweries] = useState<Brewery[]>([]);
+  const [selectedBreweryId, setSelectedBreweryId] = useState<string>("");
   const [rating, setRating] = useState(5);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [loadingList, setLoadingList] = useState(true);
 
-  const breweryBeers = useMemo(() => {
-    if (!selectedBrewery) return [];
-    return BEERS.filter((beer) => beer.brewery === selectedBrewery).sort(
-      (a, b) => a.name.localeCompare(b.name),
-    );
-  }, [selectedBrewery]);
-
-  const handleBreweryChange = (brewery: string) => {
-    setSelectedBrewery(brewery);
-    setSelectedBeer("");
-    setErrorMsg(null);
+  // Dynamic Emoji based on the rating slider
+  const getRatingEmoji = (val: number) => {
+    if (val <= 2) return "...";
+    if (val <= 4) return "😐";
+    if (val <= 6) return "😊";
+    if (val <= 8) return "🍻";
+    if (val <= 9) return "🔥";
+    return "👑";
   };
 
+  // 1. Fetch Breweries from your Admin API
+  useEffect(() => {
+    async function loadBreweries() {
+      try {
+        const res = await fetch("/api/admin/breweries");
+        if (res.ok) setBreweries(await res.json());
+      } catch (err) {
+        setErrorMsg("Failed to load festival lineup.");
+      } finally {
+        setLoadingList(false);
+      }
+    }
+    loadBreweries();
+  }, []);
+
+  const selectedBrewery = useMemo(
+    () => breweries.find((b) => b._id === selectedBreweryId),
+    [selectedBreweryId, breweries],
+  );
+
+  // 2. Submit Vote to the path: /api/admin/votes
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedBrewery || !selectedBeer || !userEmail) return;
+    if (!selectedBreweryId || !userEmail) return;
 
     setSending(true);
     setErrorMsg(null);
 
-    const beerData = BEERS.find((b) => b.id === selectedBeer);
+    try {
+      const res = await fetch("/api/admin/votes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userEmail,
+          productId: selectedBreweryId,
+          beerName: selectedBrewery?.name,
+          brewery: selectedBrewery?.name,
+          rating,
+        }),
+      });
 
-    const result = await submitBeerVote({
-      userEmail,
-      productId: selectedBeer,
-      beerName: beerData?.name || "Unknown",
-      brewery: selectedBrewery,
-      rating,
-    });
+      const data = await res.json();
 
-    if (result.success) {
-      setDone(true);
-    } else {
-      setErrorMsg(result.message || "Failed to submit vote.");
+      if (res.ok) {
+        setDone(true);
+      } else {
+        // Handle "Already voted" or server errors
+        setErrorMsg(data.error || "Submission failed");
+      }
+    } catch (err) {
+      setErrorMsg("Network error. Please try again.");
+    } finally {
+      setSending(false);
     }
-    setSending(false);
   }
+
+  if (loadingList)
+    return (
+      <div className="flex justify-center py-10">
+        <Loader2 className="animate-spin text-green-600" />
+      </div>
+    );
 
   if (done)
     return (
-      <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl shadow-md animate-fadeIn">
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">✨</span>
-          <h3 className="text-lg font-bold text-green-800">Vote Recorded!</h3>
-        </div>
-        <p className="text-gray-700">
-          Thanks for voting for{" "}
-          <strong className="text-green-700">
-            {BEERS.find((b) => b.id === selectedBeer)?.name}
-          </strong>
-          ! Your rating of{" "}
-          <strong className="text-green-700">{rating}/10</strong> has been saved
-          to our database.
+      <div className="p-8 bg-green-50 border-2 border-green-200 rounded-3xl text-center animate-fadeIn">
+        <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+        <h3 className="text-2xl font-black text-green-900 mb-2">
+          Vote Recorded!
+        </h3>
+        <p className="text-green-700 text-lg">
+          You gave <strong>{selectedBrewery?.name}</strong> a {rating}/10{" "}
+          {getRatingEmoji(rating)}
         </p>
         <button
           onClick={() => {
             setDone(false);
-            setSelectedBeer("");
+            setSelectedBreweryId("");
+            setRating(5);
           }}
-          className="mt-4 text-green-600 font-bold underline hover:text-green-700"
+          className="mt-8 font-black text-green-600 underline hover:text-green-800 transition-colors"
         >
-          Vote for another beer
+          Vote for another booth
         </button>
       </div>
     );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {errorMsg && (
-        <div className="p-4 bg-red-50 border-2 border-red-200 text-red-700 rounded-lg text-sm font-bold animate-shake">
+        <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-bold animate-shake">
           ⚠️ {errorMsg}
         </div>
       )}
 
-      {/* Step 1: Brewery Selection */}
+      {/* Step 1: Select Brewery */}
       <div className="group">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-green-600 rounded-full">
-            1
-          </span>
-          <label className="block text-base font-bold text-gray-800">
-            Select a Brewery
-          </label>
-        </div>
+        <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+          Step 1: Choose Brewery
+        </label>
         <select
-          value={selectedBrewery}
-          onChange={(e) => handleBreweryChange(e.target.value)}
-          className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-gray-900 font-medium hover:border-green-400 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 transition-all"
+          value={selectedBreweryId}
+          onChange={(e) => {
+            setSelectedBreweryId(e.target.value);
+            setErrorMsg(null);
+          }}
+          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer font-bold text-gray-700"
         >
-          <option value="">🍺 Choose a brewery...</option>
-          {BREWERIES.map((brewery) => (
-            <option key={brewery} value={brewery}>
-              {brewery}
+          <option value="">🍺 Select a booth...</option>
+          {breweries.map((b) => (
+            <option key={b._id} value={b._id}>
+              {b.name}
             </option>
           ))}
         </select>
       </div>
 
-      {/* Step 2: Beer Selection */}
       {selectedBrewery && (
-        <div className="group animate-fadeIn">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-green-600 rounded-full">
-              2
-            </span>
-            <label className="block text-base font-bold text-gray-800">
-              Select a Beer from {selectedBrewery}
-            </label>
-          </div>
-          <select
-            value={selectedBeer}
-            onChange={(e) => setSelectedBeer(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-white text-gray-900 font-medium hover:border-green-400 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-200 transition-all"
-          >
-            <option value="">🍻 Choose a beer...</option>
-            {breweryBeers.map((beer) => (
-              <option key={beer.id} value={beer.id}>
-                {beer.name} • {beer.style}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Step 3: Rating */}
-      {selectedBeer && (
-        <div className="group animate-fadeIn bg-gradient-to-br from-amber-50 to-yellow-50 p-5 rounded-lg border-2 border-amber-200">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="inline-flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-green-600 rounded-full">
-              3
-            </span>
-            <label className="block text-base font-bold text-gray-800">
-              Rate Your Experience
-            </label>
+        <div className="animate-fadeIn space-y-8">
+          {/* Brewery Card Preview */}
+          <div className="flex items-center gap-5 p-5 bg-white border border-gray-100 rounded-3xl shadow-sm">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
+              <Image
+                src={selectedBrewery.logoUrl}
+                alt="logo"
+                fill
+                className="object-contain p-2"
+              />
+            </div>
+            <div className="min-w-0">
+              <h4 className="font-black text-xl text-gray-900 truncate">
+                {selectedBrewery.name}
+              </h4>
+              <p className="text-sm text-gray-500 line-clamp-2 leading-tight mt-1">
+                {selectedBrewery.description}
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-between text-xs font-semibold text-gray-600 mb-2">
-              <span>👎 Not good</span>
-              <span>👍 Excellent</span>
+          {/* Step 2: Emoji Rating Slider */}
+          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 p-8 rounded-3xl border-2 border-amber-100 text-center">
+            <label className="block text-xs font-black text-amber-800 uppercase tracking-[0.2em] mb-6">
+              Step 2: Rate Your Experience
+            </label>
+
+            <div className="text-7xl mb-4 transition-all duration-300 transform hover:scale-125">
+              {getRatingEmoji(rating)}
+            </div>
+
+            <div className="text-4xl font-black text-amber-600 mb-8">
+              {rating}{" "}
+              <span className="text-lg text-amber-400 font-medium">/ 10</span>
             </div>
 
             <input
               type="range"
-              min={1}
-              max={10}
+              min="1"
+              max="10"
               value={rating}
               onChange={(e) => setRating(Number(e.target.value))}
-              className="w-full h-3 rounded-lg appearance-none cursor-pointer"
+              className="w-full h-4 rounded-xl appearance-none cursor-pointer accent-amber-600"
               style={{
-                background: `linear-gradient(to right, #f87171 0%, #fbbf24 40%, #4ade80 100%)`,
+                background: `linear-gradient(to right, #f87171, #fbbf24, #4ade80)`,
               }}
             />
-
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-sm font-semibold text-gray-700">
-                Your rating:
-              </span>
-              <div className="inline-flex items-center justify-center w-12 h-12 text-2xl font-bold text-white bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-md">
-                {rating}
-              </div>
-              <span className="text-sm font-semibold text-gray-700">/10</span>
+            <div className="flex justify-between text-[11px] font-black text-amber-400 mt-4 px-1 uppercase tracking-wider">
+              <span>Not Good</span>
+              <span>Average</span>
+              <span>Masterpiece!</span>
             </div>
           </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={sending}
+            className="w-full py-5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-green-100 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+          >
+            {sending ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <>
+                <Send size={20} />
+                Submit My Vote
+              </>
+            )}
+          </button>
         </div>
       )}
 
-      {/* Submit Button */}
-      {selectedBeer && (
-        <button
-          type="submit"
-          disabled={sending}
-          className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 flex items-center justify-center gap-2"
-        >
-          {sending ? (
-            <>
-              <span className="animate-spin">⏳</span>
-              Saving to Database...
-            </>
-          ) : (
-            <>
-              <span>✓</span>
-              Submit My Vote
-            </>
-          )}
-        </button>
-      )}
-
+      {/* Internal Styles for Animations */}
       <style jsx>{`
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(15px);
           }
           to {
             opacity: 1;
@@ -222,14 +241,14 @@ export default function VoteForm({ userEmail }: VoteFormProps) {
             transform: translateX(0);
           }
           25% {
-            transform: translateX(-5px);
+            transform: translateX(-6px);
           }
           75% {
-            transform: translateX(5px);
+            transform: translateX(6px);
           }
         }
         .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
+          animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         .animate-shake {
           animation: shake 0.2s ease-in-out 0s 2;

@@ -1,6 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Disabling these allows the build to finish despite minor linting issues
+  // 1. Allow Cloudinary Images
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/**", // Allows all images from your Cloudinary account
+      },
+    ],
+  },
+
+  // 2. Your Existing Build Config
   eslint: {
     ignoreDuringBuilds: true,
   },

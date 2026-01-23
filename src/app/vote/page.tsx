@@ -1,6 +1,13 @@
 "use client";
 import VoteForm from "@/components/VoteForm";
-import { Star, Beer, CheckCircle2, Lightbulb, Trophy } from "lucide-react";
+import {
+  Star,
+  Beer,
+  CheckCircle2,
+  Lightbulb,
+  Trophy,
+  Loader2,
+} from "lucide-react";
 import { signIn, useSession } from "next-auth/react";
 
 export default function VotePage() {
@@ -26,7 +33,7 @@ export default function VotePage() {
         </div>
 
         {/* Main Voting Card */}
-        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden mb-8 border border-green-100">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden mb-8 border border-green-100">
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-8 py-6">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
               <Trophy className="w-6 h-6 text-yellow-300" />
@@ -39,8 +46,8 @@ export default function VotePage() {
           <div className="p-8 sm:p-10">
             {isLoading ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <div className="animate-spin h-12 w-12 border-4 border-green-600 border-t-transparent rounded-full mb-4"></div>
-                <p className="text-green-700 font-medium">Loading session...</p>
+                <Loader2 className="animate-spin h-12 w-12 text-green-600 mb-4" />
+                <p className="text-green-700 font-medium">Authenticating...</p>
               </div>
             ) : session ? (
               <VoteForm userEmail={session.user?.email} />
@@ -50,7 +57,7 @@ export default function VotePage() {
                   <Star className="w-10 h-10 text-green-600" />
                 </div>
                 <p className="text-gray-600 mb-8 text-lg">
-                  To ensure a fair competition (one vote per beer), please
+                  To ensure a fair competition (one vote per brewery), please
                   authenticate with Google.
                 </p>
                 <button
@@ -69,9 +76,8 @@ export default function VotePage() {
           </div>
         </div>
 
-        {/* Instructions & Pro-Tips Section */}
+        {/* Instructions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* How to Vote */}
           <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
             <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
               <CheckCircle2 className="text-green-600 w-5 h-5" />
@@ -79,38 +85,29 @@ export default function VotePage() {
             </h3>
             <ul className="space-y-4 text-sm text-gray-600">
               <li className="flex gap-3">
-                <span className="font-bold text-green-600">01.</span>
-                Select the brewery from the dropdown list.
+                <span className="font-bold text-green-600">01.</span> Select the
+                brewery you just visited.
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-green-600">02.</span>
-                Find the specific beer you just tasted.
+                <span className="font-bold text-green-600">02.</span> Use the
+                slider to rate your experience.
               </li>
               <li className="flex gap-3">
-                <span className="font-bold text-green-600">03.</span>
-                Slide the bar to rate it from 1 to 10 and submit!
+                <span className="font-bold text-green-600">03.</span> Submit to
+                save your vote to the leaderboard.
               </li>
             </ul>
           </div>
 
-          {/* Pro-Tips */}
           <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-2xl shadow-lg border border-amber-100">
             <h3 className="flex items-center gap-2 font-bold text-amber-800 mb-4">
               <Lightbulb className="text-amber-600 w-5 h-5" />
               Pro-Tips
             </h3>
-            <ul className="space-y-4 text-sm text-amber-900/80">
-              <li className="flex items-start gap-2">
-                <span>🎯</span>
-                You can vote for as many <strong>different</strong> beers as you
-                like, but only once per beer!
-              </li>
-              <li className="flex items-start gap-2">
-                <span>👅</span>
-                Cleanse your palate with water between tastings for the most
-                accurate rating.
-              </li>
-            </ul>
+            <p className="text-sm text-amber-900/80 leading-relaxed">
+              You can vote for every different booth in the festival, but you
+              can only rate each specific brewery once!
+            </p>
           </div>
         </div>
       </section>
