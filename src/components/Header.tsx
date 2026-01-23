@@ -57,7 +57,7 @@ export default function Header() {
             className="flex items-center group transition-transform hover:scale-105"
           >
             <Image
-              src={BeerFestival} // Your new imported logo
+              src={BeerFestival}
               alt="Great Cambodian Craft Beer Festival"
               width={180}
               height={60}
@@ -114,91 +114,97 @@ export default function Header() {
           <span>Vote</span>
         </a>
 
-        {/* Mobile logos on right */}
-        <div className="flex md:hidden items-center space-x-3">
+        {/* Mobile logo on right */}
+        <div className="flex md:hidden items-center">
           <Link href="/" className="flex items-center">
             <Image
-              src={BeerFestival} // Your new imported logo
+              src={BeerFestival}
               alt="Great Cambodian Craft Beer Festival"
-              width={120} // Adjusted width for better mobile display
+              width={120}
               height={40}
-              className="w-auto h-10" // h-15 was a bit large, h-10 fits standard headers better
+              className="w-auto h-10"
               priority
             />
           </Link>
         </div>
 
-        {/* Mobile menu overlay */}
+        {/* Mobile menu overlay and drawer */}
         <div
           className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
           }`}
           onClick={closeMenu}
         >
+          {/* Drawer Sidebar */}
           <div
-            className={`absolute left-0 top-0 h-full w-72 text-[#1B4332] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 ${
+            className={`absolute left-0 top-0 h-full w-72 text-[#1B4332] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 flex flex-col ${
               isOpen ? "translate-x-0" : "-translate-x-full"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <div className="flex justify-end p-4">
+            {/* Header in sidebar */}
+            <div className="flex justify-between items-center p-4 border-b">
+              <span className="font-bold text-lg">Menu</span>
               <button
                 onClick={closeMenu}
-                className="p-1 rounded hover:bg-[#1B4332] hover:text-white text-[#1B4332] transition"
+                className="p-2 rounded hover:bg-gray-100 text-[#1B4332] transition"
                 aria-label="Close Menu"
-                type="button"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
-          </div>
 
-          {/* Mobile nav */}
-          <nav className="mt-6 flex flex-col space-y-6 px-6 text-lg font-medium">
-            {navItems.map(({ name, href, icon: Icon }) => {
-              const isActive = pathname === href;
-              return (
-                <Link
-                  key={name}
-                  href={href}
-                  onClick={closeMenu}
-                  className={`flex items-center space-x-3 transition duration-200 ${
-                    isActive
-                      ? "bg-gradient-to-r from-[#40916C] to-[#2D6A4F] text-white px-4 py-2 rounded-full shadow-md hover:shadow-lg hover:scale-105 transform ease-out"
-                      : "hover:text-[#40916C]"
-                  }`}
-                >
-                  <Icon size={20} />
-                  <span>{name}</span>
-                </Link>
-              );
-            })}
+            {/* Scrollable Nav Area */}
+            <nav className="flex-1 mt-4 flex flex-col space-y-2 px-4 overflow-y-auto">
+              {navItems.map(({ name, href, icon: Icon }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={name}
+                    href={href}
+                    onClick={closeMenu}
+                    className={`flex items-center space-x-3 p-3 rounded-lg transition duration-200 ${
+                      isActive
+                        ? "bg-green-100 text-green-800 font-semibold"
+                        : "hover:bg-gray-50 text-gray-700"
+                    }`}
+                  >
+                    <Icon
+                      size={20}
+                      className={isActive ? "text-green-700" : "text-gray-500"}
+                    />
+                    <span>{name}</span>
+                  </Link>
+                );
+              })}
 
-            {/* Mobile Vote button */}
-            <a
-              href={voteFormUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={closeMenu}
-              className="flex items-center space-x-3 px-4 py-2 rounded-full bg-yellow-600 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition transform ease-out"
-            >
-              <Vote size={20} />
-              <span>Vote</span>
-            </a>
-          </nav>
+              <hr className="my-4 border-gray-100" />
 
-          {/* Social icons */}
-          <div className="mt-auto flex justify-center space-x-6 p-6">
-            {[Linkedin, Github, Globe].map((Icon, i) => (
-              <Link
-                key={i}
-                href="#"
-                className="hover:text-[#40916C] transition duration-200"
+              {/* Mobile Vote button */}
+              <a
+                href={voteFormUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={closeMenu}
+                className="flex items-center justify-center space-x-3 px-4 py-3 rounded-full bg-yellow-600 text-white font-semibold shadow-md active:scale-95 transition-transform"
               >
-                <Icon size={22} />
-              </Link>
-            ))}
+                <Vote size={20} />
+                <span>Vote Now</span>
+              </a>
+            </nav>
+
+            {/* Social icons at bottom of sidebar */}
+            <div className="mt-auto flex justify-center space-x-8 p-8 border-t bg-gray-50 rounded-br-xl">
+              {[Linkedin, Github, Globe].map((Icon, i) => (
+                <Link
+                  key={i}
+                  href="#"
+                  className="text-gray-500 hover:text-[#40916C] transition duration-200"
+                >
+                  <Icon size={24} />
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
