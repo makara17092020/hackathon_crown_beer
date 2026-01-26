@@ -78,7 +78,7 @@ export default function HomePage() {
           {[
             {
               title: "Meet the Breweries",
-              text: "Discover 14 incredible breweries from across Cambodia and learn their unique stories.",
+              text: "Discover 12 incredible breweries from across Cambodia and learn their unique stories.",
               link: "/breweries",
             },
             {
