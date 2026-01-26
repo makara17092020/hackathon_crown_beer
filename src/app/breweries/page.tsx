@@ -33,21 +33,21 @@ export default function BreweriesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-green-50">
-        <Loader2 className="w-10 h-10 animate-spin text-green-600 mb-4" />
-        <p className="text-green-800 font-bold">Loading Festival Lineup...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#00B5B5]/10">
+        <Loader2 className="w-10 h-10 animate-spin text-[#00B5B5] mb-4" />
+        <p className="text-[#1A3C5A] font-bold">Loading Festival Lineup...</p>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-green-50 to-white px-4 sm:px-6 py-10">
+    <main className="min-h-screen bg-gradient-to-b from-[#00B5B5]/10 to-white px-4 sm:px-6 py-10">
       <section className="max-w-7xl mx-auto">
         <header className="text-center mb-16">
-          <h1 className="text-4xl sm:text-5xl font-black text-green-800 mb-4">
+          <h1 className="text-4xl sm:text-5xl font-black text-[#1A3C5A] mb-4">
             Participating Breweries
           </h1>
-          <p className="text-green-600 font-bold uppercase tracking-widest text-sm">
+          <p className="text-[#00B5B5] font-bold uppercase tracking-widest text-sm">
             Coconut Park Koh Pich • 2026
           </p>
         </header>
@@ -61,7 +61,7 @@ export default function BreweriesPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white rounded-[2rem] shadow-sm border border-green-100 overflow-hidden hover:shadow-xl transition-all flex flex-col"
+                className="bg-white rounded-[2rem] shadow-sm border border-[#00B5B5]/20 overflow-hidden hover:shadow-xl transition-all flex flex-col"
               >
                 {/* Logo Area */}
                 <div className="relative w-full h-56 bg-gray-50 flex items-center justify-center p-8">
@@ -75,12 +75,12 @@ export default function BreweriesPage() {
 
                 {/* Content Area */}
                 <div className="p-8 flex flex-col flex-grow text-center">
-                  <h2 className="text-2xl font-black text-gray-900 mb-4">
+                  <h2 className="text-2xl font-black text-[#1A3C5A] mb-4">
                     {brewery.name}
                   </h2>
 
                   {/* Clean Description (No raw URL here) */}
-                  <p className="text-gray-600 text-sm leading-relaxed mb-8 flex-grow">
+                  <p className="text-[#1A3C5A]/80 text-sm leading-relaxed mb-8 flex-grow">
                     {brewery.description}
                   </p>
 
@@ -89,7 +89,7 @@ export default function BreweriesPage() {
                     href={brewery.location}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-emerald-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                    className="w-full bg-[#00B5B5] hover:bg-[#009999] text-white font-black py-4 rounded-2xl shadow-lg shadow-[#00B5B5]/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                   >
                     <MapPin size={20} /> Find Booth
                   </a>
