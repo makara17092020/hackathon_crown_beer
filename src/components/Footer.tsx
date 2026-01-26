@@ -14,7 +14,7 @@ export default function Footer() {
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
               Join us for Cambodia&apos;s premier craft beer festival featuring
-              14 exceptional breweries and live entertainment. A celebration of
+              12 exceptional breweries and live entertainment. A celebration of
               local craft culture!
             </p>
           </div>

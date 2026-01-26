@@ -7,15 +7,13 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  Linkedin,
-  Github,
-  Globe,
   Home as HomeIcon,
   Beer,
   Calendar,
   Award,
   Vote,
   User,
+  Globe,
 } from "lucide-react";
 
 import BeerFestival from "@/images/BeerFestival.png";
@@ -37,12 +35,22 @@ export default function Header() {
 
   const voteFormUrl = "https://forms.gle/LPZFNjGQymjVju8B8";
 
+  // LOGO COLORS
+  // Primary (Teal from "CRAFT BEER FESTIVAL"): #00B5B5
+  // Secondary (Orange from Khmer Text): #F08E1E
+  // Dark (Navy from Elephant/Text): #1A3C5A
+  const primaryColor = "text-[#00B5B5]";
+  const primaryBg = "bg-[#00B5B5]";
+  const secondaryBg = "bg-[#F08E1E]";
+  const hoverText = "group-hover:text-[#00B5B5]";
+  const darkText = "text-[#1A3C5A]";
+
   return (
-    <header className="sticky top-0 z-50 bg-[#F8F9FA] font-inter text-[#212529] shadow-md">
+    <header className="sticky top-0 z-50 bg-[#F8F9FA] font-inter shadow-md">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        {/* Mobile menu button on left */}
+        {/* Mobile menu button (Primary Teal) */}
         <button
-          className="md:hidden p-2 rounded bg-[#40916C] hover:bg-[#1B4332] text-white transition w-10 h-10 flex items-center justify-center"
+          className={`md:hidden p-2 rounded ${primaryBg} hover:opacity-90 text-white transition w-10 h-10 flex items-center justify-center`}
           onClick={() => setIsOpen(true)}
           aria-label="Open Menu"
           type="button"
@@ -50,7 +58,7 @@ export default function Header() {
           <Menu size={24} />
         </button>
 
-        {/* Desktop logo on left */}
+        {/* Desktop logo */}
         <div className="hidden md:flex items-center">
           <Link
             href="/"
@@ -76,23 +84,25 @@ export default function Header() {
                 key={name}
                 href={href}
                 className={`flex items-center space-x-2 relative group transition ${
-                  isActive ? "text-green-700" : "text-[#1B4332]"
+                  isActive ? primaryColor : darkText
                 }`}
               >
                 <Icon
                   size={18}
                   className={`${
-                    isActive ? "text-green-700" : "text-[#1B4332]"
-                  } group-hover:text-[#40916C] transition duration-200`}
+                    isActive ? "text-[#00B5B5]" : "text-[#1A3C5A]"
+                  } ${hoverText} transition duration-200`}
                 />
                 <span
                   className={`${
                     isActive
-                      ? "text-green-700 font-semibold"
-                      : "group-hover:text-[#40916C]"
+                      ? "text-[#00B5B5] font-semibold"
+                      : "group-hover:text-[#00B5B5]"
                   } transition duration-200
+                  
+                  /* Underline effect using Secondary Orange */
                   after:content-[''] after:absolute after:w-0 after:h-[2px]
-                  after:bg-[#FFD166] after:left-0 after:bottom-[-4px]
+                  after:bg-[#F08E1E] after:left-0 after:bottom-[-4px]
                   group-hover:after:w-full after:transition-all after:duration-300`}
                 >
                   {name}
@@ -102,19 +112,19 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Desktop Vote button */}
+        {/* Desktop Vote button (Secondary Orange) */}
         <a
           href={voteFormUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden md:flex items-center space-x-2 font-semibold px-5 py-2.5 rounded-full shadow-md transition-all duration-300 ease-out transform hover:scale-105
-            bg-yellow-600 text-white hover:shadow-lg"
+          className={`hidden md:flex items-center space-x-2 font-semibold px-6 py-2.5 rounded-full shadow-md transition-all duration-300 ease-out transform hover:scale-105
+            ${secondaryBg} text-white hover:bg-[#D67910] hover:shadow-lg`}
         >
           <Vote size={18} />
           <span>Vote</span>
         </a>
 
-        {/* Mobile logo on right */}
+        {/* Mobile logo */}
         <div className="flex md:hidden items-center">
           <Link href="/" className="flex items-center">
             <Image
@@ -128,7 +138,7 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Mobile menu overlay and drawer */}
+        {/* Mobile menu overlay */}
         <div
           className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${
             isOpen ? "opacity-100 visible" : "opacity-0 invisible"
@@ -137,7 +147,7 @@ export default function Header() {
         >
           {/* Drawer Sidebar */}
           <div
-            className={`absolute left-0 top-0 h-full w-72 text-[#1B4332] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 flex flex-col ${
+            className={`absolute left-0 top-0 h-full w-72 text-[#1A3C5A] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 flex flex-col ${
               isOpen ? "translate-x-0" : "-translate-x-full"
             }`}
             onClick={(e) => e.stopPropagation()}
@@ -147,7 +157,7 @@ export default function Header() {
               <span className="font-bold text-lg">Menu</span>
               <button
                 onClick={closeMenu}
-                className="p-2 rounded hover:bg-gray-100 text-[#1B4332] transition"
+                className="p-2 rounded hover:bg-gray-100 text-[#1A3C5A] transition"
                 aria-label="Close Menu"
               >
                 <X size={24} />
@@ -165,13 +175,13 @@ export default function Header() {
                     onClick={closeMenu}
                     className={`flex items-center space-x-3 p-3 rounded-lg transition duration-200 ${
                       isActive
-                        ? "bg-green-100 text-green-800 font-semibold"
-                        : "hover:bg-gray-50 text-gray-700"
+                        ? "bg-[#E0F7F8] text-[#00B5B5] font-semibold"
+                        : "hover:bg-gray-50 text-[#1A3C5A]"
                     }`}
                   >
                     <Icon
                       size={20}
-                      className={isActive ? "text-green-700" : "text-gray-500"}
+                      className={isActive ? "text-[#00B5B5]" : "text-gray-400"}
                     />
                     <span>{name}</span>
                   </Link>
@@ -180,13 +190,13 @@ export default function Header() {
 
               <hr className="my-4 border-gray-100" />
 
-              {/* Mobile Vote button */}
+              {/* Mobile Vote button (Secondary Orange) */}
               <a
                 href={voteFormUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={closeMenu}
-                className="flex items-center justify-center space-x-3 px-4 py-3 rounded-full bg-yellow-600 text-white font-semibold shadow-md active:scale-95 transition-transform"
+                className={`flex items-center justify-center space-x-3 px-4 py-3 rounded-full ${secondaryBg} text-white font-semibold shadow-md active:scale-95 transition-transform hover:bg-[#D67910]`}
               >
                 <Vote size={20} />
                 <span>Vote Now</span>

@@ -32,7 +32,7 @@ export default function HomePage() {
                 Join us for Cambodia&apos;s premier craft beer festival
                 featuring{" "}
                 <span className="font-semibold text-green-700">
-                  14 exceptional breweries
+                  12 exceptional breweries
                 </span>{" "}
                 and live entertainment.
               </p>
