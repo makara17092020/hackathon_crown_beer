@@ -20,6 +20,7 @@ import {
   UploadCloud,
   ExternalLink,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 
 // --- TYPES ---
@@ -30,19 +31,8 @@ type Brewery = {
   location: string;
   logoUrl: string;
 };
-
-type Vote = {
-  _id: string;
-  productId: string;
-  brewery: string;
-  rating: number;
-};
-
-type ToastState = {
-  message: string;
-  type: "success" | "error";
-};
-
+type Vote = { _id: string; productId: string; brewery: string; rating: number };
+type ToastState = { message: string; type: "success" | "error" };
 type BreweryForm = {
   name: string;
   description: string;
@@ -61,6 +51,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null); // New state for delete modal
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [breweryForm, setBreweryForm] = useState<BreweryForm>({
     name: "",
@@ -79,7 +70,6 @@ export default function AdminDashboard() {
       totalVotes > 0
         ? (votes.reduce((acc, v) => acc + v.rating, 0) / totalVotes).toFixed(1)
         : "0";
-
     const breweryStats = breweries
       .map((b) => {
         const bVotes = votes.filter(
@@ -94,7 +84,6 @@ export default function AdminDashboard() {
         return { ...b, average: parseFloat(bAvg), voteCount: bVotes.length };
       })
       .sort((a, b) => b.average - a.average || b.voteCount - a.voteCount);
-
     return { totalVotes, avgRating, breweryStats };
   }, [votes, breweries]);
 
@@ -130,31 +119,6 @@ export default function AdminDashboard() {
   ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setBreweryForm({ ...breweryForm, image: file });
-      setPreviewUrl(URL.createObjectURL(file));
-    }
-  };
-
-  const clearImage = () => {
-    setBreweryForm({ ...breweryForm, image: null });
-    setPreviewUrl(null);
-  };
-
-  const startEdit = (brewery: Brewery) => {
-    setEditingId(brewery._id);
-    setBreweryForm({
-      name: brewery.name,
-      description: brewery.description,
-      location: brewery.location,
-      image: null,
-    });
-    setPreviewUrl(brewery.logoUrl);
-    setActiveTab("register");
   };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -201,10 +165,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const deleteBrewery = async (id: string) => {
-    if (!confirm("Are you sure? This cannot be undone.")) return;
+  const confirmDelete = async () => {
+    if (!deletingId) return;
     try {
-      const res = await fetch(`/api/admin/breweries/${id}`, {
+      const res = await fetch(`/api/admin/breweries/${deletingId}`, {
         method: "DELETE",
       });
       if (res.ok) {
@@ -213,6 +177,8 @@ export default function AdminDashboard() {
       }
     } catch (e) {
       showToast("Delete failed", "error");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -226,7 +192,6 @@ export default function AdminDashboard() {
           </div>
           <h2 className="text-2xl font-black tracking-tighter">BEER CROWN</h2>
         </div>
-
         <nav className="space-y-3 flex-1">
           {[
             { id: "overview", label: "Overview", icon: TrendingUp },
@@ -243,7 +208,6 @@ export default function AdminDashboard() {
             </button>
           ))}
         </nav>
-
         <div className="pt-8 border-t border-white/10 space-y-3">
           <button
             onClick={() => setResetModal(true)}
@@ -285,13 +249,12 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {/* 1. OVERVIEW (Refined Image Podium) */}
+            {/* 1. OVERVIEW */}
             {activeTab === "overview" && (
               <div className="animate-fadeIn">
                 <h1 className="text-6xl font-black mb-12 tracking-tighter">
                   Festival Insights
                 </h1>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                   <div className="bg-white p-10 rounded-[3rem] shadow-sm border-b-[15px] border-[#00B5B5]">
                     <p className="text-gray-400 font-black uppercase text-xs tracking-widest mb-2">
@@ -318,12 +281,10 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 </div>
-
                 <h3 className="text-3xl font-black mb-10 flex items-center gap-2 italic">
                   <Trophy className="text-[#F08E1E]" size={28} /> The Current
                   Podium
                 </h3>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end max-w-6xl">
                   {stats.breweryStats.slice(0, 3).map((b, idx) => {
                     const colors = [
@@ -331,7 +292,6 @@ export default function AdminDashboard() {
                       { bg: "bg-[#00B5B5]", label: "RUNNER UP", badge: "🥈" },
                       { bg: "bg-[#1A3C5A]", label: "THIRD PLACE", badge: "🥉" },
                     ][idx];
-
                     return (
                       <div
                         key={b._id}
@@ -343,7 +303,6 @@ export default function AdminDashboard() {
                           <span className="absolute -right-4 -top-8 text-[12rem] font-black text-white/10 italic select-none leading-none">
                             {idx + 1}
                           </span>
-
                           <div className="relative z-10">
                             <div className="flex justify-between items-start mb-6">
                               <span className="text-6xl font-black text-white italic leading-none">
@@ -353,8 +312,6 @@ export default function AdminDashboard() {
                                 {colors.badge}
                               </div>
                             </div>
-
-                            {/* Refined Image Container */}
                             <div className="mx-auto w-32 h-32 bg-white rounded-[2.5rem] p-2 shadow-2xl mb-6 relative overflow-hidden border-4 border-white/20">
                               <Image
                                 src={b.logoUrl}
@@ -363,15 +320,12 @@ export default function AdminDashboard() {
                                 className="object-cover"
                               />
                             </div>
-
                             <h4 className="text-3xl font-black text-white mb-6 min-h-[4rem] flex items-center justify-center leading-tight tracking-tighter">
                               {b.name}
                             </h4>
-
                             <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full inline-block text-[10px] font-black text-white tracking-[0.2em] mb-8 border border-white/20">
                               {colors.label}
                             </div>
-
                             <div className="grid grid-cols-2 gap-4 bg-black/20 backdrop-blur-lg p-6 rounded-[2.5rem] border border-white/10 text-white">
                               <div className="border-r border-white/10">
                                 <p className="text-[10px] font-black opacity-60 mb-1">
@@ -399,20 +353,17 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 2. MODERN LEADERBOARD */}
+            {/* 2. LEADERBOARD */}
             {activeTab === "leaderboard" && (
               <div className="animate-fadeIn">
-                <header className="mb-12 flex justify-between items-end">
-                  <div>
-                    <h1 className="text-5xl font-black tracking-tighter">
-                      Live Rankings
-                    </h1>
-                    <p className="text-gray-400 font-bold mt-2">
-                      Sort by highest average rating
-                    </p>
-                  </div>
+                <header className="mb-12">
+                  <h1 className="text-5xl font-black tracking-tighter">
+                    Live Rankings
+                  </h1>
+                  <p className="text-gray-400 font-bold mt-2">
+                    Sort by highest average rating
+                  </p>
                 </header>
-
                 <div className="space-y-4">
                   {stats.breweryStats.map((b, i) => (
                     <div
@@ -420,22 +371,11 @@ export default function AdminDashboard() {
                       className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 flex items-center justify-between group hover:shadow-xl hover:border-[#00B5B5] transition-all duration-300"
                     >
                       <div className="flex items-center gap-8">
-                        {/* Rank Badge */}
                         <div
-                          className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl ${
-                            i === 0
-                              ? "bg-[#F08E1E] text-white"
-                              : i === 1
-                                ? "bg-[#00B5B5] text-white"
-                                : i === 2
-                                  ? "bg-[#1A3C5A] text-white"
-                                  : "bg-gray-100 text-gray-400"
-                          }`}
+                          className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-2xl ${i === 0 ? "bg-[#F08E1E] text-white" : i === 1 ? "bg-[#00B5B5] text-white" : i === 2 ? "bg-[#1A3C5A] text-white" : "bg-gray-100 text-gray-400"}`}
                         >
                           {i + 1}
                         </div>
-
-                        {/* Brand Info */}
                         <div className="flex items-center gap-6">
                           <div className="w-16 h-16 relative bg-gray-50 rounded-2xl overflow-hidden border p-1 shadow-inner group-hover:scale-110 transition-transform">
                             <Image
@@ -455,8 +395,6 @@ export default function AdminDashboard() {
                           </div>
                         </div>
                       </div>
-
-                      {/* Stats Section */}
                       <div className="flex items-center gap-12">
                         <div className="text-right">
                           <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
@@ -477,14 +415,13 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 3. REGISTER BREWERY */}
+            {/* 3. REGISTER */}
             {activeTab === "register" && (
               <div className="max-w-3xl mx-auto animate-fadeIn">
                 <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border-t-[15px] border-[#00B5B5]">
                   <h3 className="text-5xl font-black mb-10 tracking-tighter">
                     {editingId ? "Update Brand" : "New Brand"}
                   </h3>
-
                   <form onSubmit={handleFormSubmit} className="space-y-6">
                     <div className="relative">
                       {previewUrl ? (
@@ -497,7 +434,10 @@ export default function AdminDashboard() {
                           />
                           <button
                             type="button"
-                            onClick={clearImage}
+                            onClick={() => {
+                              setBreweryForm({ ...breweryForm, image: null });
+                              setPreviewUrl(null);
+                            }}
                             className="absolute top-4 right-4 p-4 bg-red-600 text-white rounded-full shadow-2xl hover:scale-110 active:scale-95 transition z-10"
                           >
                             <X size={28} />
@@ -516,12 +456,17 @@ export default function AdminDashboard() {
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            onChange={handleImageChange}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setBreweryForm({ ...breweryForm, image: file });
+                                setPreviewUrl(URL.createObjectURL(file));
+                              }
+                            }}
                           />
                         </label>
                       )}
                     </div>
-
                     <input
                       className="w-full p-7 bg-gray-50 rounded-[2rem] focus:border-[#00B5B5] border-4 border-transparent outline-none font-black text-2xl transition"
                       placeholder="Name"
@@ -533,7 +478,7 @@ export default function AdminDashboard() {
                     />
                     <input
                       className="w-full p-7 bg-gray-50 rounded-[2rem] focus:border-[#00B5B5] border-4 border-transparent outline-none font-black text-2xl transition"
-                      placeholder="Map/Location URL"
+                      placeholder="Map URL"
                       value={breweryForm.location}
                       onChange={(e) =>
                         setBreweryForm({
@@ -555,7 +500,6 @@ export default function AdminDashboard() {
                       }
                       required
                     />
-
                     <div className="flex gap-4">
                       {editingId && (
                         <button
@@ -585,7 +529,7 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {/* 4. BREWERY STORE (Matching reference image) */}
+            {/* 4. STORE */}
             {activeTab === "store" && (
               <div className="animate-fadeIn">
                 <div className="flex justify-between items-center mb-12">
@@ -603,7 +547,6 @@ export default function AdminDashboard() {
                     <PlusCircle size={20} /> New Brand
                   </button>
                 </div>
-
                 <div className="grid grid-cols-1 gap-8">
                   {breweries.map((b) => (
                     <div
@@ -640,13 +583,23 @@ export default function AdminDashboard() {
                       </div>
                       <div className="flex gap-4 pr-4">
                         <button
-                          onClick={() => startEdit(b)}
+                          onClick={() => {
+                            setEditingId(b._id);
+                            setBreweryForm({
+                              name: b.name,
+                              description: b.description,
+                              location: b.location,
+                              image: null,
+                            });
+                            setPreviewUrl(b.logoUrl);
+                            setActiveTab("register");
+                          }}
                           className="p-6 bg-[#FFF4E5] text-[#F08E1E] rounded-[2rem] hover:bg-[#F08E1E] hover:text-white transition-all shadow-lg hover:rotate-3"
                         >
                           <Edit2 size={28} />
                         </button>
                         <button
-                          onClick={() => deleteBrewery(b._id)}
+                          onClick={() => setDeletingId(b._id)}
                           className="p-6 bg-red-50 text-red-500 rounded-[2rem] hover:bg-red-500 hover:text-white transition-all shadow-lg hover:-rotate-3"
                         >
                           <Trash2 size={28} />
@@ -661,13 +614,53 @@ export default function AdminDashboard() {
         )}
       </main>
 
-      {/* RESET MODAL */}
-      {resetModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A3C5A]/60 backdrop-blur-md">
-          <div className="bg-white rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center">
-            <h3 className="text-4xl font-black mb-4">Reset System?</h3>
+      {/* DELETE BREWERY MODAL - NEW STYLE */}
+      {deletingId && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A3C5A]/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center border-t-[12px] border-red-500">
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle size={40} />
+            </div>
+            <h3 className="text-4xl font-black mb-4 tracking-tighter">
+              Delete Brand?
+            </h3>
             <p className="text-gray-500 mb-10 font-bold text-lg leading-tight">
-              This will permanently delete all votes.
+              Are you sure you want to remove{" "}
+              <span className="text-[#1A3C5A]">
+                {breweries.find((b) => b._id === deletingId)?.name}
+              </span>
+              ? This action is permanent.
+            </p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setDeletingId(null)}
+                className="flex-1 py-5 bg-gray-100 text-gray-700 font-black rounded-3xl transition hover:bg-gray-200"
+              >
+                CANCEL
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-5 bg-red-600 text-white font-black rounded-3xl transition shadow-xl hover:bg-red-700 active:scale-95"
+              >
+                DELETE NOW
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RESET ALL MODAL */}
+      {resetModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#1A3C5A]/60 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-[3rem] p-12 max-w-md w-full shadow-2xl text-center border-t-[12px] border-red-500">
+            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+              <RotateCcw size={40} />
+            </div>
+            <h3 className="text-4xl font-black mb-4 tracking-tighter">
+              Reset System?
+            </h3>
+            <p className="text-gray-500 mb-10 font-bold text-lg leading-tight">
+              This will permanently delete ALL festival votes.
             </p>
             <div className="flex gap-4">
               <button
@@ -683,7 +676,7 @@ export default function AdminDashboard() {
                   setResetModal(false);
                   showToast("System Reset");
                 }}
-                className="flex-1 py-5 bg-red-600 text-white font-black rounded-3xl transition shadow-xl hover:bg-red-700"
+                className="flex-1 py-5 bg-red-600 text-white font-black rounded-3xl transition shadow-xl hover:bg-red-700 active:scale-95"
               >
                 RESET NOW
               </button>
