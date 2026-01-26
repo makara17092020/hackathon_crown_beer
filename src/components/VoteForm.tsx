@@ -10,11 +10,7 @@ interface Brewery {
   description: string;
 }
 
-export default function VoteForm({
-  userEmail,
-}: {
-  userEmail: string | null | undefined;
-}) {
+export default function VoteForm() {
   const [breweries, setBreweries] = useState<Brewery[]>([]);
   const [selectedBreweryId, setSelectedBreweryId] = useState<string>("");
   const [rating, setRating] = useState(5);
@@ -22,6 +18,17 @@ export default function VoteForm({
   const [done, setDone] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(true);
+  const [sessionId, setSessionId] = useState<string>("");
+
+  // Generate or retrieve session ID from localStorage for anonymous voting
+  useEffect(() => {
+    let id = localStorage.getItem("voteSessionId");
+    if (!id) {
+      id = `anon_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      localStorage.setItem("voteSessionId", id);
+    }
+    setSessionId(id);
+  }, []);
 
   // Dynamic Emoji based on the rating slider
   const getRatingEmoji = (val: number) => {
@@ -33,7 +40,7 @@ export default function VoteForm({
     return "👑";
   };
 
-  // 1. Fetch Breweries from your Admin API
+  // Fetch Breweries from Admin API
   useEffect(() => {
     async function loadBreweries() {
       try {
@@ -53,10 +60,10 @@ export default function VoteForm({
     [selectedBreweryId, breweries],
   );
 
-  // 2. Submit Vote to the path: /api/admin/votes
+  // Submit Vote - No login required, uses session ID
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedBreweryId || !userEmail) return;
+    if (!selectedBreweryId || !sessionId) return;
 
     setSending(true);
     setErrorMsg(null);
@@ -66,7 +73,7 @@ export default function VoteForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail,
+          userEmail: sessionId, // Session ID instead of actual email
           productId: selectedBreweryId,
           beerName: selectedBrewery?.name,
           brewery: selectedBrewery?.name,
@@ -79,7 +86,6 @@ export default function VoteForm({
       if (res.ok) {
         setDone(true);
       } else {
-        // Handle "Already voted" or server errors
         setErrorMsg(data.error || "Submission failed");
       }
     } catch (err) {
@@ -92,18 +98,18 @@ export default function VoteForm({
   if (loadingList)
     return (
       <div className="flex justify-center py-10">
-        <Loader2 className="animate-spin text-green-600" />
+        <Loader2 className="animate-spin text-[#00B5B5]" />
       </div>
     );
 
   if (done)
     return (
-      <div className="p-8 bg-green-50 border-2 border-green-200 rounded-3xl text-center animate-fadeIn">
-        <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-        <h3 className="text-2xl font-black text-green-900 mb-2">
-          Vote Recorded!
+      <div className="p-8 bg-[#00B5B5]/10 border-2 border-[#00B5B5]/30 rounded-3xl text-center animate-fadeIn">
+        <CheckCircle className="w-16 h-16 text-[#00B5B5] mx-auto mb-4" />
+        <h3 className="text-2xl font-black text-[#1A3C5A] mb-2">
+          Vote Recorded! ✓
         </h3>
-        <p className="text-green-700 text-lg">
+        <p className="text-[#1A3C5A] text-lg">
           You gave <strong>{selectedBrewery?.name}</strong> a {rating}/10{" "}
           {getRatingEmoji(rating)}
         </p>
@@ -113,7 +119,7 @@ export default function VoteForm({
             setSelectedBreweryId("");
             setRating(5);
           }}
-          className="mt-8 font-black text-green-600 underline hover:text-green-800 transition-colors"
+          className="mt-8 font-black text-[#00B5B5] underline hover:text-[#009999] transition-colors"
         >
           Vote for another booth
         </button>
@@ -139,7 +145,7 @@ export default function VoteForm({
             setSelectedBreweryId(e.target.value);
             setErrorMsg(null);
           }}
-          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer font-bold text-gray-700"
+          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-[#00B5B5] focus:bg-white outline-none transition-all appearance-none cursor-pointer font-bold text-gray-700"
         >
           <option value="">🍺 Select a booth...</option>
           {breweries.map((b) => (
@@ -173,8 +179,8 @@ export default function VoteForm({
           </div>
 
           {/* Step 2: Emoji Rating Slider */}
-          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 p-8 rounded-3xl border-2 border-amber-100 text-center">
-            <label className="block text-xs font-black text-amber-800 uppercase tracking-[0.2em] mb-6">
+          <div className="bg-gradient-to-br from-[#F08E1E]/10 to-[#F08E1E]/5 p-8 rounded-3xl border-2 border-[#F08E1E]/20 text-center">
+            <label className="block text-xs font-black text-[#F08E1E] uppercase tracking-[0.2em] mb-6">
               Step 2: Rate Your Experience
             </label>
 
@@ -182,9 +188,9 @@ export default function VoteForm({
               {getRatingEmoji(rating)}
             </div>
 
-            <div className="text-4xl font-black text-amber-600 mb-8">
+            <div className="text-4xl font-black text-[#F08E1E] mb-8">
               {rating}{" "}
-              <span className="text-lg text-amber-400 font-medium">/ 10</span>
+              <span className="text-lg text-[#F08E1E]/60 font-medium">/ 10</span>
             </div>
 
             <input
@@ -193,12 +199,12 @@ export default function VoteForm({
               max="10"
               value={rating}
               onChange={(e) => setRating(Number(e.target.value))}
-              className="w-full h-4 rounded-xl appearance-none cursor-pointer accent-amber-600"
+              className="w-full h-4 rounded-xl appearance-none cursor-pointer accent-[#F08E1E]"
               style={{
-                background: `linear-gradient(to right, #f87171, #fbbf24, #4ade80)`,
+                background: `linear-gradient(to right, #f87171, #F08E1E, #4ade80)`,
               }}
             />
-            <div className="flex justify-between text-[11px] font-black text-amber-400 mt-4 px-1 uppercase tracking-wider">
+            <div className="flex justify-between text-[11px] font-black text-[#F08E1E]/60 mt-4 px-1 uppercase tracking-wider">
               <span>Not Good</span>
               <span>Average</span>
               <span>Masterpiece!</span>
@@ -209,7 +215,7 @@ export default function VoteForm({
           <button
             type="submit"
             disabled={sending}
-            className="w-full py-5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-black text-lg rounded-2xl shadow-xl shadow-green-100 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-5 bg-gradient-to-r from-[#00B5B5] to-[#009999] hover:from-[#00A0A0] hover:to-[#008080] text-white font-black text-lg rounded-2xl shadow-xl shadow-[#00B5B5]/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
           >
             {sending ? (
               <Loader2 className="animate-spin" />
@@ -223,7 +229,7 @@ export default function VoteForm({
         </div>
       )}
 
-      {/* Internal Styles for Animations */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes fadeIn {
           from {
