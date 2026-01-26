@@ -33,12 +33,6 @@ export default function Header() {
     { name: "Admin", href: "/admin/login", icon: User },
   ];
 
-  const voteFormUrl = "https://forms.gle/LPZFNjGQymjVju8B8";
-
-  // LOGO COLORS
-  // Primary (Teal from "CRAFT BEER FESTIVAL"): #00B5B5
-  // Secondary (Orange from Khmer Text): #F08E1E
-  // Dark (Navy from Elephant/Text): #1A3C5A
   const primaryColor = "text-[#00B5B5]";
   const primaryBg = "bg-[#00B5B5]";
   const secondaryBg = "bg-[#F08E1E]";
@@ -48,7 +42,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-[#F8F9FA] font-inter shadow-md">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        {/* Mobile menu button (Primary Teal) */}
+        {/* Mobile menu button */}
         <button
           className={`md:hidden p-2 rounded ${primaryBg} hover:opacity-90 text-white transition w-10 h-10 flex items-center justify-center`}
           onClick={() => setIsOpen(true)}
@@ -99,8 +93,6 @@ export default function Header() {
                       ? "text-[#00B5B5] font-semibold"
                       : "group-hover:text-[#00B5B5]"
                   } transition duration-200
-                  
-                  /* Underline effect using Secondary Orange */
                   after:content-[''] after:absolute after:w-0 after:h-[2px]
                   after:bg-[#F08E1E] after:left-0 after:bottom-[-4px]
                   group-hover:after:w-full after:transition-all after:duration-300`}
@@ -112,17 +104,15 @@ export default function Header() {
           })}
         </nav>
 
-        {/* Desktop Vote button (Secondary Orange) */}
-        <a
-          href={voteFormUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+        {/* Desktop Vote button - UPDATED: No target="_blank" */}
+        <Link
+          href="/vote"
           className={`hidden md:flex items-center space-x-2 font-semibold px-6 py-2.5 rounded-full shadow-md transition-all duration-300 ease-out transform hover:scale-105
             ${secondaryBg} text-white hover:bg-[#D67910] hover:shadow-lg`}
         >
           <Vote size={18} />
           <span>Vote</span>
-        </a>
+        </Link>
 
         {/* Mobile logo */}
         <div className="flex md:hidden items-center">
@@ -145,14 +135,12 @@ export default function Header() {
           }`}
           onClick={closeMenu}
         >
-          {/* Drawer Sidebar */}
           <div
             className={`absolute left-0 top-0 h-full w-72 text-[#1A3C5A] bg-white rounded-r-xl shadow-lg transform transition-transform duration-300 flex flex-col ${
               isOpen ? "translate-x-0" : "-translate-x-full"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header in sidebar */}
             <div className="flex justify-between items-center p-4 border-b">
               <span className="font-bold text-lg">Menu</span>
               <button
@@ -164,7 +152,6 @@ export default function Header() {
               </button>
             </div>
 
-            {/* Scrollable Nav Area */}
             <nav className="flex-1 mt-4 flex flex-col space-y-2 px-4 overflow-y-auto">
               {navItems.map(({ name, href, icon: Icon }) => {
                 const isActive = pathname === href;
@@ -190,17 +177,15 @@ export default function Header() {
 
               <hr className="my-4 border-gray-100" />
 
-              {/* Mobile Vote button (Secondary Orange) */}
-              <a
-                href={voteFormUrl}
-                target="_blank"
-                rel="noopener noreferrer"
+              {/* Mobile Vote button - UPDATED: Switched to <Link> for smoother routing */}
+              <Link
+                href="/vote"
                 onClick={closeMenu}
                 className={`flex items-center justify-center space-x-3 px-4 py-3 rounded-full ${secondaryBg} text-white font-semibold shadow-md active:scale-95 transition-transform hover:bg-[#D67910]`}
               >
                 <Vote size={20} />
                 <span>Vote Now</span>
-              </a>
+              </Link>
             </nav>
           </div>
         </div>
