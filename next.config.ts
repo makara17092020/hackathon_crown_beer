@@ -6,15 +6,14 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: "/**", // Allows all images from your Cloudinary account
+        pathname: "/**",
       },
     ],
   },
 
-  // 2. Your Existing Build Config
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  // 2. Build Config
+  // ✅ REMOVED the eslint block.
+  // ✅ Kept typescript ignore for now.
   typescript: {
     ignoreBuildErrors: true,
   },
