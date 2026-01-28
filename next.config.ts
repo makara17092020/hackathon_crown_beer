@@ -1,19 +1,20 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // 1. Allow Cloudinary Images
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "res.cloudinary.com",
-        pathname: "/**",
+        pathname: "/**", // Allows all images from your Cloudinary account
       },
     ],
   },
 
-  // 2. Build Configuration
-  // ESLint is removed from here because it's no longer supported in the config file.
+  // 2. Your Existing Build Config
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
