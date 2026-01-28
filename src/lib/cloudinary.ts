@@ -1,10 +1,20 @@
+// lib/cloudinary.ts
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure directly to ensure variables are picked up
+const cloud_name = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const api_key = process.env.CLOUDINARY_API_KEY;
+const api_secret = process.env.CLOUDINARY_API_SECRET;
+
+// This will tell you EXACTLY which variable is missing in your terminal
+if (!cloud_name || !api_key || !api_secret) {
+  console.error("❌ Cloudinary Config Error: Missing environment variables");
+  console.log({ cloud_name, api_key: !!api_key, api_secret: !!api_secret });
+}
+
 cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+  cloud_name,
+  api_key,
+  api_secret,
 });
 
 export default cloudinary;
