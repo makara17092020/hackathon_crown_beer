@@ -32,7 +32,7 @@ export default function HomePage() {
                 Join us for Cambodia&apos;s premier craft beer festival
                 featuring{" "}
                 <span className="font-semibold text-[#00B5B5]">
-                  12 exceptional breweries
+                  13 exceptional breweries
                 </span>{" "}
                 and live entertainment.
               </p>
@@ -78,7 +78,7 @@ export default function HomePage() {
           {[
             {
               title: "Meet the Breweries",
-              text: "Discover 12 incredible breweries from across Cambodia and learn their unique stories.",
+              text: "Discover 13 incredible breweries from across Cambodia and learn their unique stories.",
               link: "/breweries",
             },
             {

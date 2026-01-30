@@ -213,7 +213,7 @@ export default function AdminDashboard() {
             onClick={() => setResetModal(true)}
             className="w-full flex items-center gap-3 px-6 py-4 bg-red-500/10 text-red-400 rounded-2xl text-sm font-black hover:bg-red-600 hover:text-white transition-all"
           >
-            <RotateCcw size={18} /> RESET ALL
+            <RotateCcw size={18} /> RESET ALL VOTES
           </button>
           <button
             onClick={() => fetchData()}

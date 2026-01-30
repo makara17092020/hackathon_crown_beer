@@ -3,6 +3,88 @@ import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { CheckCircle, Loader2, Send } from "lucide-react";
 
+// --- DATA: Beer Menu mapped to Brewery Name (From your Sheet) ---
+// Note: The keys here must match the 'name' coming from your API exactly.
+const BREWERY_BEER_MAP: Record<string, string[]> = {
+  "Fungi Art": ["IPA", "Sake Saison", "Lager Beer", "Brut IPA"],
+  "Mozzie's": ["New England Hazy IPA", "Citra Pale Ale", "Wheat Beer"],
+  "Sak Pub": [
+    "Happy Hazy IPA",
+    "Amarillo Cascade IPA",
+    "Sok Sabay IPA",
+    "Vanilla Porter",
+  ],
+  "Black Bamboo": [
+    "Sambucus Elderflower IPA",
+    "Hops Wave IPA",
+    "Lotus IPA",
+    "Milkyway Stout",
+    "Lemondrop Pils",
+    "Rasberry Ale",
+    "Belgian Wit",
+    "Ignazius Triple",
+    "Ngam Ngov Fermented Limes",
+    "Milkshake IPA",
+  ],
+  "Project Brews": [
+    "Saturated in Simcoe - West Coast IPA",
+    "Southern Pinewheel - Pale Ale",
+    "She Told Me She Was Pretty - Raspberry Sour",
+    "Roots - Extra Strong Bitter",
+    "PB&J - Sour",
+    "Sundog - Hazy IPA",
+    "Kampot Pepper & Lemongrass - Blonde Ale",
+    "Kampot Long Red Pepper, Ginger & Dragon Fruit - Spiced Ale",
+  ],
+  Himawari: ["Apsara Gold", "After Eight Porter"],
+  Botanico: [
+    "Krush it! - Session IPA",
+    "Slash - Juicy IPA",
+    "Hoppy Lager",
+    "Centurion American Pale Ale",
+    "Khmer Honey Blonde",
+    "After Eight Porter",
+  ],
+  Krama: [
+    "Summer Blonde",
+    "Amber Ale",
+    "Black IPA",
+    "Golden Pale Ale",
+    "Triple Khmer",
+    "Barley Wine",
+  ],
+  "Bash Brewing": [
+    "Silver Angel - Light Lager",
+    "Gold Angel - Lager",
+    "Amber Witch - German Wheet",
+    "Imperial IPA",
+    "Bash Special",
+    "Winter Ale",
+  ],
+  "Fuzzy Logic": ["Pale Ale", "Thunderslap IPA", "Apsara Cider"],
+  "Riel Brewing": [
+    "West Coast IPA",
+    "Citra Pale Ale",
+    "New England IPA",
+    "Ginger Beer",
+    "Raspberry Berliner Weisse",
+    "Non-alcoholic Pale Ale",
+  ],
+  "Stone Head": [
+    "Seven Days Witbier",
+    "Lemongrass Kolsch",
+    "Gancore IPA",
+    "Smiling Evil Pale Ale",
+    "Red Bus Amber",
+  ],
+  "Brew Khnear": [
+    "Backstage IPA - Westcoast IPA",
+    "Mango Reigns - Mango IPA",
+    "Wings - Session IPA",
+    "Ship of the Fens - English Pale Ale",
+  ],
+};
+
 interface Brewery {
   _id: string;
   name: string;
@@ -13,6 +95,7 @@ interface Brewery {
 export default function VoteForm() {
   const [breweries, setBreweries] = useState<Brewery[]>([]);
   const [selectedBreweryId, setSelectedBreweryId] = useState<string>("");
+  const [selectedBeer, setSelectedBeer] = useState<string>(""); // New State for Beer
   const [rating, setRating] = useState(5);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
@@ -20,7 +103,7 @@ export default function VoteForm() {
   const [loadingList, setLoadingList] = useState(true);
   const [sessionId, setSessionId] = useState<string>("");
 
-  // Generate or retrieve session ID from localStorage for anonymous voting
+  // Generate or retrieve session ID
   useEffect(() => {
     let id = localStorage.getItem("voteSessionId");
     if (!id) {
@@ -30,17 +113,7 @@ export default function VoteForm() {
     setSessionId(id);
   }, []);
 
-  // Dynamic Emoji based on the rating slider
-  const getRatingEmoji = (val: number) => {
-    if (val <= 2) return "...";
-    if (val <= 4) return "😐";
-    if (val <= 6) return "😊";
-    if (val <= 8) return "🍻";
-    if (val <= 9) return "🔥";
-    return "👑";
-  };
-
-  // Fetch Breweries from Admin API
+  // Fetch Breweries
   useEffect(() => {
     async function loadBreweries() {
       try {
@@ -55,15 +128,32 @@ export default function VoteForm() {
     loadBreweries();
   }, []);
 
+  // Helpers
   const selectedBrewery = useMemo(
     () => breweries.find((b) => b._id === selectedBreweryId),
     [selectedBreweryId, breweries],
   );
 
-  // Submit Vote - No login required, uses session ID
+  const getRatingEmoji = (val: number) => {
+    if (val <= 2) return "💀";
+    if (val <= 4) return "😐";
+    if (val <= 6) return "😊";
+    if (val <= 8) return "🍻";
+    if (val <= 9) return "🔥";
+    return "👑";
+  };
+
+  // Get Beer List for current selection
+  const currentBeerList = useMemo(() => {
+    if (!selectedBrewery) return [];
+    // Try to find the beer list matching the brewery name
+    return BREWERY_BEER_MAP[selectedBrewery.name] || [];
+  }, [selectedBrewery]);
+
+  // Submit Vote
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedBreweryId || !sessionId) return;
+    if (!selectedBreweryId || !selectedBeer || !sessionId) return;
 
     setSending(true);
     setErrorMsg(null);
@@ -73,10 +163,10 @@ export default function VoteForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail: sessionId, // Session ID instead of actual email
+          userEmail: sessionId,
           productId: selectedBreweryId,
-          beerName: selectedBrewery?.name,
           brewery: selectedBrewery?.name,
+          beerName: selectedBeer, // Sending the specific beer name
           rating,
         }),
       });
@@ -95,6 +185,14 @@ export default function VoteForm() {
     }
   }
 
+  // Handle Brewery Change (Reset subsequent steps)
+  const handleBreweryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedBreweryId(e.target.value);
+    setSelectedBeer(""); // Reset beer
+    setRating(5); // Reset rating
+    setErrorMsg(null);
+  };
+
   if (loadingList)
     return (
       <div className="flex justify-center py-10">
@@ -110,18 +208,19 @@ export default function VoteForm() {
           Vote Recorded! ✓
         </h3>
         <p className="text-[#1A3C5A] text-lg">
-          You gave <strong>{selectedBrewery?.name}</strong> a {rating}/10{" "}
-          {getRatingEmoji(rating)}
+          You rated <strong>{selectedBeer}</strong> by {selectedBrewery?.name} a{" "}
+          {rating}/10 {getRatingEmoji(rating)}
         </p>
         <button
           onClick={() => {
             setDone(false);
             setSelectedBreweryId("");
+            setSelectedBeer("");
             setRating(5);
           }}
           className="mt-8 font-black text-[#00B5B5] underline hover:text-[#009999] transition-colors"
         >
-          Vote for another booth
+          Vote for another brew
         </button>
       </div>
     );
@@ -134,17 +233,14 @@ export default function VoteForm() {
         </div>
       )}
 
-      {/* Step 1: Select Brewery */}
-      <div className="group">
+      {/* --- Step 1: Select Brewery --- */}
+      <div className="group animate-fadeIn" style={{ animationDelay: "0ms" }}>
         <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
           Step 1: Choose Brewery
         </label>
         <select
           value={selectedBreweryId}
-          onChange={(e) => {
-            setSelectedBreweryId(e.target.value);
-            setErrorMsg(null);
-          }}
+          onChange={handleBreweryChange}
           className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-[#00B5B5] focus:bg-white outline-none transition-all appearance-none cursor-pointer font-bold text-gray-700"
         >
           <option value="">🍺 Select a booth...</option>
@@ -156,32 +252,61 @@ export default function VoteForm() {
         </select>
       </div>
 
+      {/* --- Step 2: Select Beer (Only shows if Brewery is Selected) --- */}
       {selectedBrewery && (
-        <div className="animate-fadeIn space-y-8">
-          {/* Brewery Card Preview */}
-          <div className="flex items-center gap-5 p-5 bg-white border border-gray-100 rounded-3xl shadow-sm">
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
+        <div
+          className="group animate-fadeIn"
+          style={{ animationDelay: "100ms" }}
+        >
+          {/* Optional: Show Brewery Info Card */}
+          <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+            <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white border border-gray-100 flex-shrink-0">
               <Image
                 src={selectedBrewery.logoUrl}
                 alt="logo"
                 fill
-                className="object-contain p-2"
+                className="object-contain p-1"
               />
             </div>
-            <div className="min-w-0">
-              <h4 className="font-black text-xl text-gray-900 truncate">
+            <div>
+              <h4 className="font-bold text-gray-900">
                 {selectedBrewery.name}
               </h4>
-              <p className="text-sm text-gray-500 line-clamp-2 leading-tight mt-1">
-                {selectedBrewery.description}
-              </p>
+              <p className="text-xs text-gray-500">Select a beer below</p>
             </div>
           </div>
 
-          {/* Step 2: Emoji Rating Slider */}
+          <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+            Step 2: Choose Beer
+          </label>
+          <select
+            value={selectedBeer}
+            onChange={(e) => setSelectedBeer(e.target.value)}
+            className="w-full p-5 bg-white border-2 border-[#00B5B5]/30 rounded-2xl focus:border-[#00B5B5] outline-none transition-all appearance-none cursor-pointer font-bold text-gray-800 shadow-sm"
+          >
+            <option value="">🍻 Select which beer...</option>
+            {currentBeerList.length > 0 ? (
+              currentBeerList.map((beer, idx) => (
+                <option key={idx} value={beer}>
+                  {beer}
+                </option>
+              ))
+            ) : (
+              <option disabled>No beer list found for this brewery</option>
+            )}
+          </select>
+        </div>
+      )}
+
+      {/* --- Step 3: Rate (Only shows if Beer is Selected) --- */}
+      {selectedBrewery && selectedBeer && (
+        <div
+          className="animate-fadeIn space-y-8"
+          style={{ animationDelay: "200ms" }}
+        >
           <div className="bg-gradient-to-br from-[#F08E1E]/10 to-[#F08E1E]/5 p-8 rounded-3xl border-2 border-[#F08E1E]/20 text-center">
             <label className="block text-xs font-black text-[#F08E1E] uppercase tracking-[0.2em] mb-6">
-              Step 2: Rate Your Experience
+              Step 3: Rate {selectedBeer}
             </label>
 
             <div className="text-7xl mb-4 transition-all duration-300 transform hover:scale-125">
@@ -190,7 +315,9 @@ export default function VoteForm() {
 
             <div className="text-4xl font-black text-[#F08E1E] mb-8">
               {rating}{" "}
-              <span className="text-lg text-[#F08E1E]/60 font-medium">/ 10</span>
+              <span className="text-lg text-[#F08E1E]/60 font-medium">
+                / 10
+              </span>
             </div>
 
             <input
@@ -205,13 +332,12 @@ export default function VoteForm() {
               }}
             />
             <div className="flex justify-between text-[11px] font-black text-[#F08E1E]/60 mt-4 px-1 uppercase tracking-wider">
-              <span>Not Good</span>
-              <span>Average</span>
-              <span>Masterpiece!</span>
+              <span>Meh</span>
+              <span>Good</span>
+              <span>Amazing!</span>
             </div>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={sending}
@@ -222,14 +348,13 @@ export default function VoteForm() {
             ) : (
               <>
                 <Send size={20} />
-                Submit My Vote
+                Vote for {selectedBeer}
               </>
             )}
           </button>
         </div>
       )}
 
-      {/* Animations */}
       <style jsx>{`
         @keyframes fadeIn {
           from {
