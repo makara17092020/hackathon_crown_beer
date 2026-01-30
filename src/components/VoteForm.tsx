@@ -1,45 +1,48 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { CheckCircle, Loader2, Send } from "lucide-react";
+import { CheckCircle, Loader2, Send, Star } from "lucide-react";
 
-// --- DATA: Beer Menu mapped to Brewery Name (From your Sheet) ---
-// Note: The keys here must match the 'name' coming from your API exactly.
 const BREWERY_BEER_MAP: Record<string, string[]> = {
-  "Fungi Art": ["IPA", "Sake Saison", "Lager Beer", "Brut IPA"],
-  "Mozzie's": ["New England Hazy IPA", "Citra Pale Ale", "Wheat Beer"],
-  "Sak Pub": [
-    "Happy Hazy IPA",
-    "Amarillo Cascade IPA",
-    "Sok Sabay IPA",
-    "Vanilla Porter",
+  "Fungi Art": [
+    "IPA",
+    "Sake Saison",
+    "Lager Beer",
+    "Brut IPA",
+    "New England Hazy IPA",
   ],
-  "Black Bamboo": [
+  "Mozzie's": ["Citra Pale Ale", "Wheat Beer", "Happy Hazy IPA"],
+  "Sak Pub": [
+    "Amarillo Cascade IPA",
+    "Sak Sabay IPA",
+    "Vanilla Porter",
     "Sambucus Elderflower IPA",
     "Hops Wave IPA",
     "Lotus IPA",
     "Milkyway Stout",
+  ],
+  "Black Bamboo": [
     "Lemondrop Pils",
-    "Rasberry Ale",
+    "Raspberry Ale",
     "Belgian Wit",
     "Ignazius Triple",
     "Ngam Ngov Fermented Limes",
     "Milkshake IPA",
+    "Saturated in Simcoe – West Coast IPA",
+    "Southern Hemisphere – Pale Ale",
+    "She Told Me She Was Pretty – Raspberry Sour",
   ],
   "Project Brews": [
-    "Saturated in Simcoe - West Coast IPA",
-    "Southern Pinewheel - Pale Ale",
-    "She Told Me She Was Pretty - Raspberry Sour",
-    "Roots - Extra Strong Bitter",
-    "PB&J - Sour",
-    "Sundog - Hazy IPA",
-    "Kampot Pepper & Lemongrass - Blonde Ale",
-    "Kampot Long Red Pepper, Ginger & Dragon Fruit - Spiced Ale",
+    "Roots – Extra Strong Bitter",
+    "PB&J – Sour",
+    "Sundog – Hazy IPA",
+    "Kampot Pepper & Lemongrass – Blonde Ale",
+    "Kampot Long Red Pepper, Ginger & Dragon Fruit – Spiced Ale",
   ],
   Himawari: ["Apsara Gold", "After Eight Porter"],
   Botanico: [
-    "Krush it! - Session IPA",
-    "Slash - Juicy IPA",
+    "Krush It! – Session IPA",
+    "Slash – Juicy IPA",
     "Hoppy Lager",
     "Centurion American Pale Ale",
     "Khmer Honey Blonde",
@@ -54,34 +57,38 @@ const BREWERY_BEER_MAP: Record<string, string[]> = {
     "Barley Wine",
   ],
   "Bash Brewing": [
-    "Silver Angel - Light Lager",
-    "Gold Angel - Lager",
-    "Amber Witch - German Wheet",
+    "Silver Angel – Light Lager",
+    "Gold Angel – Lager",
+    "Amber Witch – German Wheat",
     "Imperial IPA",
     "Bash Special",
     "Winter Ale",
   ],
-  "Fuzzy Logic": ["Pale Ale", "Thunderslap IPA", "Apsara Cider"],
-  "Riel Brewing": [
+  "Fuzzy Logic": [
+    "Pale Ale",
+    "Thunderslap IPA",
+    "Apsara Cider",
     "West Coast IPA",
+  ],
+  "Riel Brewing": [
     "Citra Pale Ale",
     "New England IPA",
     "Ginger Beer",
     "Raspberry Berliner Weisse",
     "Non-alcoholic Pale Ale",
+    "Seven Days Witbier",
   ],
   "Stone Head": [
-    "Seven Days Witbier",
     "Lemongrass Kolsch",
-    "Gancore IPA",
+    "Cancero IPA",
     "Smiling Evil Pale Ale",
     "Red Bus Amber",
+    "Backstage IPA – Westcoast IPA",
   ],
   "Brew Khnear": [
-    "Backstage IPA - Westcoast IPA",
-    "Mango Reigns - Mango IPA",
-    "Wings - Session IPA",
-    "Ship of the Fens - English Pale Ale",
+    "Mango Reigns – Mango IPA",
+    "Wings – Session IPA",
+    "Ship of the Fens – English Pale Ale",
   ],
 };
 
@@ -89,37 +96,35 @@ interface Brewery {
   _id: string;
   name: string;
   logoUrl: string;
-  description: string;
 }
 
 export default function VoteForm() {
   const [breweries, setBreweries] = useState<Brewery[]>([]);
-  const [selectedBreweryId, setSelectedBreweryId] = useState<string>("");
-  const [selectedBeer, setSelectedBeer] = useState<string>(""); // New State for Beer
+  const [selectedBreweryId, setSelectedBreweryId] = useState("");
+  const [selectedBeer, setSelectedBeer] = useState("");
   const [rating, setRating] = useState(5);
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loadingList, setLoadingList] = useState(true);
-  const [sessionId, setSessionId] = useState<string>("");
+  const [sessionId, setSessionId] = useState("");
 
-  // Generate or retrieve session ID
   useEffect(() => {
     let id = localStorage.getItem("voteSessionId");
     if (!id) {
-      id = `anon_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      id = `anon_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       localStorage.setItem("voteSessionId", id);
     }
     setSessionId(id);
   }, []);
 
-  // Fetch Breweries
   useEffect(() => {
     async function loadBreweries() {
       try {
         const res = await fetch("/api/admin/breweries");
-        if (res.ok) setBreweries(await res.json());
-      } catch (err) {
+        if (!res.ok) throw new Error();
+        setBreweries(await res.json());
+      } catch {
         setErrorMsg("Failed to load festival lineup.");
       } finally {
         setLoadingList(false);
@@ -128,36 +133,30 @@ export default function VoteForm() {
     loadBreweries();
   }, []);
 
-  // Helpers
   const selectedBrewery = useMemo(
     () => breweries.find((b) => b._id === selectedBreweryId),
     [selectedBreweryId, breweries],
   );
 
-  const getRatingEmoji = (val: number) => {
-    if (val <= 2) return "💀";
-    if (val <= 4) return "😐";
-    if (val <= 6) return "😊";
-    if (val <= 8) return "🍻";
-    if (val <= 9) return "🔥";
-    return "👑";
-  };
-
-  // Get Beer List for current selection
   const currentBeerList = useMemo(() => {
     if (!selectedBrewery) return [];
-    // Try to find the beer list matching the brewery name
-    return BREWERY_BEER_MAP[selectedBrewery.name] || [];
+    // Normalization to handle Fungi vs Funghi and spacing
+    const dbName = selectedBrewery.name.toLowerCase().replace(/h/g, "").trim();
+    const matchKey = Object.keys(BREWERY_BEER_MAP).find((key) => {
+      const cleanKey = key.toLowerCase().replace(/h/g, "").trim();
+      return (
+        cleanKey === dbName ||
+        cleanKey.includes(dbName) ||
+        dbName.includes(cleanKey)
+      );
+    });
+    return matchKey ? BREWERY_BEER_MAP[matchKey] : [];
   }, [selectedBrewery]);
 
-  // Submit Vote
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!selectedBreweryId || !selectedBeer || !sessionId) return;
-
+    if (!selectedBreweryId || !selectedBeer) return;
     setSending(true);
-    setErrorMsg(null);
-
     try {
       const res = await fetch("/api/admin/votes", {
         method: "POST",
@@ -166,225 +165,203 @@ export default function VoteForm() {
           userEmail: sessionId,
           productId: selectedBreweryId,
           brewery: selectedBrewery?.name,
-          beerName: selectedBeer, // Sending the specific beer name
+          beerName: selectedBeer,
           rating,
         }),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setDone(true);
-      } else {
-        setErrorMsg(data.error || "Submission failed");
-      }
-    } catch (err) {
-      setErrorMsg("Network error. Please try again.");
+      if (!res.ok) throw new Error();
+      setDone(true);
+    } catch {
+      setErrorMsg("Submission failed. Please try again.");
     } finally {
       setSending(false);
     }
   }
 
-  // Handle Brewery Change (Reset subsequent steps)
-  const handleBreweryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedBreweryId(e.target.value);
-    setSelectedBeer(""); // Reset beer
-    setRating(5); // Reset rating
-    setErrorMsg(null);
-  };
-
   if (loadingList)
     return (
-      <div className="flex justify-center py-10">
-        <Loader2 className="animate-spin text-[#00B5B5]" />
+      <div className="flex justify-center py-20">
+        <Loader2 className="animate-spin text-[#00B5B5] w-12 h-12" />
       </div>
     );
 
   if (done)
     return (
-      <div className="p-8 bg-[#00B5B5]/10 border-2 border-[#00B5B5]/30 rounded-3xl text-center animate-fadeIn">
-        <CheckCircle className="w-16 h-16 text-[#00B5B5] mx-auto mb-4" />
-        <h3 className="text-2xl font-black text-[#1A3C5A] mb-2">
-          Vote Recorded! ✓
+      <div className="p-10 bg-white shadow-2xl rounded-[2.5rem] text-center border-2 border-[#00B5B5]/20 animate-in fade-in duration-300">
+        <div className="w-20 h-20 bg-[#00B5B5]/10 text-[#00B5B5] rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle size={40} />
+        </div>
+        <h3 className="text-3xl font-black text-gray-900 mb-2 uppercase italic tracking-tighter">
+          Vote Recorded!
         </h3>
-        <p className="text-[#1A3C5A] text-lg">
-          You rated <strong>{selectedBeer}</strong> by {selectedBrewery?.name} a{" "}
-          {rating}/10 {getRatingEmoji(rating)}
+        <p className="text-gray-500 mb-8 text-lg font-medium">
+          Your rating for{" "}
+          <span className="text-[#00B5B5] underline decoration-wavy underline-offset-4">
+            {selectedBeer}
+          </span>{" "}
+          is in.
         </p>
         <button
           onClick={() => {
             setDone(false);
             setSelectedBreweryId("");
             setSelectedBeer("");
-            setRating(5);
           }}
-          className="mt-8 font-black text-[#00B5B5] underline hover:text-[#009999] transition-colors"
+          className="w-full py-5 bg-[#00B5B5] text-white font-black rounded-2xl shadow-xl shadow-[#00B5B5]/20 hover:scale-[1.02] transition-transform"
         >
-          Vote for another brew
+          VOTE FOR ANOTHER
         </button>
       </div>
     );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {errorMsg && (
-        <div className="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm font-bold animate-shake">
-          ⚠️ {errorMsg}
-        </div>
-      )}
-
-      {/* --- Step 1: Select Brewery --- */}
-      <div className="group animate-fadeIn" style={{ animationDelay: "0ms" }}>
-        <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
-          Step 1: Choose Brewery
-        </label>
-        <select
-          value={selectedBreweryId}
-          onChange={handleBreweryChange}
-          className="w-full p-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-[#00B5B5] focus:bg-white outline-none transition-all appearance-none cursor-pointer font-bold text-gray-700"
-        >
-          <option value="">🍺 Select a booth...</option>
-          {breweries.map((b) => (
-            <option key={b._id} value={b._id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* --- Step 2: Select Beer (Only shows if Brewery is Selected) --- */}
-      {selectedBrewery && (
-        <div
-          className="group animate-fadeIn"
-          style={{ animationDelay: "100ms" }}
-        >
-          {/* Optional: Show Brewery Info Card */}
-          <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-            <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white border border-gray-100 flex-shrink-0">
-              <Image
-                src={selectedBrewery.logoUrl}
-                alt="logo"
-                fill
-                className="object-contain p-1"
-              />
-            </div>
-            <div>
-              <h4 className="font-bold text-gray-900">
-                {selectedBrewery.name}
-              </h4>
-              <p className="text-xs text-gray-500">Select a beer below</p>
-            </div>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-2xl mx-auto space-y-12 pb-20 px-4"
+    >
+      {/* STEP 1: BREWERY */}
+      <section>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-2xl bg-[#00B5B5] text-white flex items-center justify-center text-lg font-black shadow-lg shadow-[#00B5B5]/20">
+            1
           </div>
+          <h2 className="text-2xl font-black text-[#00B5B5] uppercase tracking-tight">
+            Choose Brewery
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {breweries.map((b) => {
+            const isActive = selectedBreweryId === b._id;
+            return (
+              <button
+                key={b._id}
+                type="button"
+                onClick={() => {
+                  setSelectedBreweryId(b._id);
+                  setSelectedBeer("");
+                }}
+                className={`group relative p-5 rounded-[2rem] transition-all duration-300 border-2 text-center bg-white ${isActive ? "border-[#00B5B5] ring-4 ring-[#00B5B5]/10 shadow-xl scale-105" : "border-[#00B5B5]/10 shadow-sm hover:border-[#00B5B5]/40"}`}
+              >
+                <div className="relative w-16 h-16 mx-auto mb-3">
+                  <Image
+                    src={b.logoUrl}
+                    alt={b.name}
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <p
+                  className={`text-[10px] font-black uppercase tracking-wider leading-tight ${isActive ? "text-[#00B5B5]" : "text-[#00B5B5]/40 group-hover:text-[#00B5B5]"}`}
+                >
+                  {b.name}
+                </p>
+                {isActive && (
+                  <div className="absolute -top-2 -right-2 bg-[#00B5B5] text-white p-1.5 rounded-full shadow-md">
+                    <CheckCircle size={16} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
-          <label className="block text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
-            Step 2: Choose Beer
-          </label>
-          <select
-            value={selectedBeer}
-            onChange={(e) => setSelectedBeer(e.target.value)}
-            className="w-full p-5 bg-white border-2 border-[#00B5B5]/30 rounded-2xl focus:border-[#00B5B5] outline-none transition-all appearance-none cursor-pointer font-bold text-gray-800 shadow-sm"
-          >
-            <option value="">🍻 Select which beer...</option>
+      {/* STEP 2: BEER */}
+      {selectedBrewery && (
+        <section className="animate-in slide-in-from-bottom-5 duration-500">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-[#00B5B5] text-white flex items-center justify-center text-lg font-black shadow-lg shadow-[#00B5B5]/20">
+              2
+            </div>
+            <h2 className="text-2xl font-black text-[#00B5B5] uppercase tracking-tight">
+              Select Drink
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2.5">
             {currentBeerList.length > 0 ? (
-              currentBeerList.map((beer, idx) => (
-                <option key={idx} value={beer}>
+              currentBeerList.map((beer) => (
+                <button
+                  key={beer}
+                  type="button"
+                  onClick={() => setSelectedBeer(beer)}
+                  className={`px-6 py-4 rounded-2xl font-bold text-sm transition-all border-2 ${selectedBeer === beer ? "bg-[#00B5B5] border-[#00B5B5] text-white shadow-xl scale-105" : "bg-white border-[#00B5B5]/20 text-gray-600 hover:border-[#00B5B5]/40"}`}
+                >
                   {beer}
-                </option>
+                </button>
               ))
             ) : (
-              <option disabled>No beer list found for this brewery</option>
+              <div className="w-full p-6 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl text-gray-500 text-sm font-medium text-center">
+                Taps are being updated...
+              </div>
             )}
-          </select>
-        </div>
+          </div>
+        </section>
       )}
 
-      {/* --- Step 3: Rate (Only shows if Beer is Selected) --- */}
-      {selectedBrewery && selectedBeer && (
-        <div
-          className="animate-fadeIn space-y-8"
-          style={{ animationDelay: "200ms" }}
-        >
-          <div className="bg-gradient-to-br from-[#F08E1E]/10 to-[#F08E1E]/5 p-8 rounded-3xl border-2 border-[#F08E1E]/20 text-center">
-            <label className="block text-xs font-black text-[#F08E1E] uppercase tracking-[0.2em] mb-6">
-              Step 3: Rate {selectedBeer}
-            </label>
-
-            <div className="text-7xl mb-4 transition-all duration-300 transform hover:scale-125">
-              {getRatingEmoji(rating)}
+      {/* STEP 3: NEW MODERN RATING */}
+      {selectedBeer && (
+        <section className="animate-in slide-in-from-bottom-10 duration-700">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-2xl bg-[#00B5B5] text-white flex items-center justify-center text-lg font-black shadow-lg shadow-[#00B5B5]/20">
+              3
             </div>
+            <h2 className="text-2xl font-black text-[#00B5B5] uppercase tracking-tight">
+              Rate Experience
+            </h2>
+          </div>
 
-            <div className="text-4xl font-black text-[#F08E1E] mb-8">
-              {rating}{" "}
-              <span className="text-lg text-[#F08E1E]/60 font-medium">
+          <div className="relative overflow-hidden bg-white rounded-[3rem] p-10 text-center border-2 border-[#00B5B5]/10 shadow-[0_20px_50px_rgba(0,181,181,0.1)]">
+            {/* Decorative Background Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-[#00B5B5]/5 blur-[60px] rounded-full pointer-events-none" />
+
+            <div className="text-7xl font-black text-[#00B5B5] mb-8 tracking-tighter drop-shadow-sm">
+              {rating}
+              <span className="text-2xl text-[#00B5B5]/30 font-bold ml-1">
                 / 10
               </span>
             </div>
 
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={rating}
-              onChange={(e) => setRating(Number(e.target.value))}
-              className="w-full h-4 rounded-xl appearance-none cursor-pointer accent-[#F08E1E]"
-              style={{
-                background: `linear-gradient(to right, #f87171, #F08E1E, #4ade80)`,
-              }}
-            />
-            <div className="flex justify-between text-[11px] font-black text-[#F08E1E]/60 mt-4 px-1 uppercase tracking-wider">
-              <span>Meh</span>
-              <span>Good</span>
-              <span>Amazing!</span>
+            <div className="relative px-2">
+              <input
+                type="range"
+                min={1}
+                max={10}
+                value={rating}
+                onChange={(e) => setRating(+e.target.value)}
+                className="w-full h-3 bg-gray-100 rounded-full appearance-none cursor-pointer accent-[#00B5B5] hover:accent-[#009999] transition-all"
+              />
+              {/* Visual labels under slider */}
+              <div className="flex justify-between mt-6 px-1">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <div
+                    key={n}
+                    className={`w-1 h-1 rounded-full transition-all duration-300 ${rating >= n ? "bg-[#00B5B5] scale-150" : "bg-gray-200"}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-between mt-4 text-[10px] font-black uppercase text-[#00B5B5]/50 tracking-[0.25em] font-sans">
+              <span>Not for me</span>
+              <span>The Best!</span>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={sending}
-            className="w-full py-5 bg-gradient-to-r from-[#00B5B5] to-[#009999] hover:from-[#00A0A0] hover:to-[#008080] text-white font-black text-lg rounded-2xl shadow-xl shadow-[#00B5B5]/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+            className="w-full mt-10 py-7 bg-gradient-to-br from-[#00B5B5] via-[#00B5B5] to-[#009999] text-white rounded-[2.5rem] font-black text-2xl shadow-2xl shadow-[#00B5B5]/40 flex items-center justify-center gap-4 transition-all hover:scale-[1.01] hover:shadow-[#00B5B5]/50 active:scale-[0.98]"
           >
             {sending ? (
-              <Loader2 className="animate-spin" />
+              <Loader2 className="animate-spin w-8 h-8" />
             ) : (
               <>
-                <Send size={20} />
-                Vote for {selectedBeer}
+                <Send size={28} /> Confirm Vote
               </>
             )}
           </button>
-        </div>
+        </section>
       )}
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(15px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @keyframes shake {
-          0%,
-          100% {
-            transform: translateX(0);
-          }
-          25% {
-            transform: translateX(-6px);
-          }
-          75% {
-            transform: translateX(6px);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .animate-shake {
-          animation: shake 0.2s ease-in-out 0s 2;
-        }
-      `}</style>
     </form>
   );
 }
